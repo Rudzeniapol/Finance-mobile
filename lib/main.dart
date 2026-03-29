@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:my_app/helpers/themes.dart';
 import 'package:my_app/providers/settings_provider.dart';
 import 'package:my_app/screens/splash_screen.dart';
+import 'package:my_app/viewmodels/cards_viewmodel.dart';
+import 'package:my_app/viewmodels/exchange_rate_viewmodel.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,8 +20,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-      value: settingsProvider,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: settingsProvider),
+        ChangeNotifierProvider(create: (_) => CardsViewModel()),
+        ChangeNotifierProvider(create: (_) => ExchangeRateViewModel()),
+      ],
       child: Consumer<SettingsProvider>(
         builder: (context, settings, _) {
           return MaterialApp(

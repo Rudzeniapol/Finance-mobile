@@ -79,6 +79,11 @@ class AppLocalizations {
       'utilities': 'Utilities',
       'thumb_scanner': 'Thumb Scanner',
       'settings': 'Settings',
+
+      'exchange_rates': 'Exchange Rates',
+      'no_connection': 'No internet connection',
+      'cached_data': 'Showing cached data',
+      'rates_error': 'Could not load rates',
     },
     'ru': {
       
@@ -145,6 +150,11 @@ class AppLocalizations {
       'utilities': 'Утилиты',
       'thumb_scanner': 'Сканер',
       'settings': 'Настройки',
+
+      'exchange_rates': 'Курсы Валют',
+      'no_connection': 'Нет подключения к интернету',
+      'cached_data': 'Показаны кэшированные данные',
+      'rates_error': 'Не удалось загрузить курсы',
     },
   };
 }

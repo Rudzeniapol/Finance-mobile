@@ -1,10 +1,12 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:my_app/helpers/colors.dart';
 import 'package:my_app/locals/app_localizations.dart';
 import 'package:my_app/screens/cards.dart';
 import 'package:my_app/screens/drawer.dart';
 import 'package:my_app/screens/settings.dart';
+import 'package:my_app/viewmodels/exchange_rate_viewmodel.dart';
 import 'package:my_app/widgets/bottombarItems.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -16,7 +18,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int touchedIndex = -1;
-  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   @override
   Widget build(BuildContext context) {
     final res_width = MediaQuery.of(context).size.width;
@@ -50,171 +53,194 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body: SafeArea(
-        child: ListView(
-          padding: EdgeInsets.only(left: 10, right: 10),
+        child: Column(
           children: [
-            SizedBox(
-              height: res_height * 0.025,
-            ),
-            Text(
-              t.get('your_balance'),
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            SizedBox(
-              height: res_height * 0.025,
-            ),
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const CardScreen()),
-                );
-              },
-              child: Container(
-                height: res_height * 0.125,
-                decoration: BoxDecoration(
-                    color: colorScheme.surface,
-                    borderRadius: BorderRadius.all(Radius.circular(25))),
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 20, right: 20),
+            // Connectivity banner
+            Consumer<ExchangeRateViewModel>(
+              builder: (context, vm, _) {
+                if (vm.isOnline) return const SizedBox.shrink();
+                return Container(
+                  width: double.infinity,
+                  color: Colors.red.shade700,
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 6, horizontal: 12),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            t.get('date_june_14_2020'),
-                            style: Theme.of(context).textTheme.bodyLarge,
-                          ),
-                          SizedBox(
-                            height: 5,
-                          ),
-                          Text(
-                            "\$27,802.05",
-                            style: Theme.of(context).textTheme.headlineMedium,
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Text(
-                            "15%",
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          SizedBox(
-                            width: 5,
-                          ),
-                          Icon(
-                            Icons.arrow_upward,
-                            color: colorScheme.onSurface,
-                          )
-                        ],
+                      const Icon(Icons.wifi_off,
+                          color: Colors.white, size: 16),
+                      const SizedBox(width: 8),
+                      Text(
+                        t.get('no_connection'),
+                        style: const TextStyle(
+                            color: Colors.white, fontSize: 13),
                       ),
                     ],
                   ),
-                ),
-              ),
+                );
+              },
             ),
-            SizedBox(
-              height: res_height * 0.025,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                      color: colorScheme.surface,
-                      borderRadius: BorderRadius.all(Radius.circular(25))),
-                  child: Padding(
-                    padding: const EdgeInsets.all(15.0),
-                    child: Icon(
-                      Icons.arrow_upward,
-                      color: kprimarycolor,
-                      size: 35,
-                    ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.only(left: 10, right: 10),
+                children: [
+                  SizedBox(height: res_height * 0.025),
+                  Text(
+                    t.get('your_balance'),
+                    style: Theme.of(context).textTheme.headlineMedium,
                   ),
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                      color: colorScheme.surface,
-                      borderRadius: BorderRadius.all(Radius.circular(25))),
-                  child: Padding(
-                    padding: const EdgeInsets.all(15.0),
-                    child: Icon(
-                      Icons.arrow_downward,
-                      color: kprimarycolor,
-                      size: 35,
-                    ),
-                  ),
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                      color: colorScheme.surface,
-                      borderRadius: BorderRadius.all(Radius.circular(25))),
-                  child: Padding(
-                    padding: const EdgeInsets.all(15.0),
-                    child: Icon(
-                      Icons.food_bank,
-                      color: kprimarycolor,
-                      size: 35,
-                    ),
-                  ),
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                      color: colorScheme.surface,
-                      borderRadius: BorderRadius.all(Radius.circular(25))),
-                  child: Padding(
-                    padding: const EdgeInsets.all(15.0),
-                    child: Icon(
-                      Icons.charging_station_rounded,
-                      color: kprimarycolor,
-                      size: 35,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: res_height * 0.025,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  t.get('activities'),
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-                Container(
-                  width: res_width * 0.25,
-                  decoration: BoxDecoration(
-                      color: colorScheme.surface,
-                      borderRadius: BorderRadius.all(Radius.circular(25))),
-                  child: Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Center(
-                      child: Text(
-                        t.get('this_week'),
-                        style: Theme.of(context).textTheme.titleSmall,
+                  SizedBox(height: res_height * 0.025),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const CardScreen()),
+                      );
+                    },
+                    child: Container(
+                      height: res_height * 0.125,
+                      decoration: BoxDecoration(
+                          color: colorScheme.surface,
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(25))),
+                      child: Padding(
+                        padding:
+                            const EdgeInsets.only(left: 20, right: 20),
+                        child: Row(
+                          mainAxisAlignment:
+                              MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              mainAxisAlignment:
+                                  MainAxisAlignment.center,
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  t.get('date_june_14_2020'),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge,
+                                ),
+                                const SizedBox(height: 5),
+                                Text(
+                                  "\$27,802.05",
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineMedium,
+                                ),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                Text(
+                                  "15%",
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleLarge,
+                                ),
+                                const SizedBox(width: 5),
+                                Icon(
+                                  Icons.arrow_upward,
+                                  color: colorScheme.onSurface,
+                                )
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                )
-              ],
-            ),
-            SizedBox(
-              height: res_height * 0.025,
-            ),
-            Container(
-              height: res_height * 0.3,
-              child: BarChart(
-                mainBarData(),
+                  SizedBox(height: res_height * 0.025),
+                  // Exchange Rates Widget
+                  _ExchangeRateCard(),
+                  SizedBox(height: res_height * 0.025),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                            color: colorScheme.surface,
+                            borderRadius: const BorderRadius.all(
+                                Radius.circular(25))),
+                        child: Padding(
+                          padding: const EdgeInsets.all(15.0),
+                          child: Icon(Icons.arrow_upward,
+                              color: kprimarycolor, size: 35),
+                        ),
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                            color: colorScheme.surface,
+                            borderRadius: const BorderRadius.all(
+                                Radius.circular(25))),
+                        child: Padding(
+                          padding: const EdgeInsets.all(15.0),
+                          child: Icon(Icons.arrow_downward,
+                              color: kprimarycolor, size: 35),
+                        ),
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                            color: colorScheme.surface,
+                            borderRadius: const BorderRadius.all(
+                                Radius.circular(25))),
+                        child: Padding(
+                          padding: const EdgeInsets.all(15.0),
+                          child: Icon(Icons.food_bank,
+                              color: kprimarycolor, size: 35),
+                        ),
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                            color: colorScheme.surface,
+                            borderRadius: const BorderRadius.all(
+                                Radius.circular(25))),
+                        child: Padding(
+                          padding: const EdgeInsets.all(15.0),
+                          child: Icon(Icons.charging_station_rounded,
+                              color: kprimarycolor, size: 35),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: res_height * 0.025),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        t.get('activities'),
+                        style:
+                            Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      Container(
+                        width: res_width * 0.25,
+                        decoration: BoxDecoration(
+                            color: colorScheme.surface,
+                            borderRadius: const BorderRadius.all(
+                                Radius.circular(25))),
+                        child: Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Center(
+                            child: Text(
+                              t.get('this_week'),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall,
+                            ),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                  SizedBox(height: res_height * 0.025),
+                  SizedBox(
+                    height: res_height * 0.3,
+                    child: BarChart(mainBarData()),
+                  ),
+                  SizedBox(height: res_height * 0.025),
+                ],
               ),
-            ),
-            SizedBox(
-              height: res_height * 0.025,
             ),
           ],
         ),
@@ -224,7 +250,8 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Container(
           decoration: BoxDecoration(
               color: colorScheme.surface,
-              borderRadius: BorderRadius.all(Radius.circular(15))),
+              borderRadius:
+                  const BorderRadius.all(Radius.circular(15))),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
@@ -381,10 +408,10 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       titlesData: FlTitlesData(
         show: true,
-        rightTitles: AxisTitles(
+        rightTitles: const AxisTitles(
           sideTitles: SideTitles(showTitles: false),
         ),
-        topTitles: AxisTitles(
+        topTitles: const AxisTitles(
           sideTitles: SideTitles(showTitles: false),
         ),
         bottomTitles: AxisTitles(
@@ -394,17 +421,13 @@ class _HomeScreenState extends State<HomeScreen> {
             reservedSize: 38,
           ),
         ),
-        leftTitles: AxisTitles(
-          sideTitles: SideTitles(
-            showTitles: false,
-          ),
+        leftTitles: const AxisTitles(
+          sideTitles: SideTitles(showTitles: false),
         ),
       ),
-      borderData: FlBorderData(
-        show: false,
-      ),
+      borderData: FlBorderData(show: false),
       barGroups: showingGroups(),
-      gridData: FlGridData(show: false),
+      gridData: const FlGridData(show: false),
     );
   }
 
@@ -433,6 +456,146 @@ class _HomeScreenState extends State<HomeScreen> {
       meta: meta,
       space: 16,
       child: text,
+    );
+  }
+}
+
+// ── Exchange Rate Card ────────────────────────────────────────────────────────
+
+class _ExchangeRateCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final t = AppLocalizations.of(context);
+
+    return Consumer<ExchangeRateViewModel>(
+      builder: (context, vm, _) {
+        return Container(
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    t.get('exchange_rates'),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  Row(
+                    children: [
+                      if (vm.isFromCache)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: Tooltip(
+                            message: t.get('cached_data'),
+                            child: Icon(Icons.cached,
+                                size: 16, color: Colors.orange.shade400),
+                          ),
+                        ),
+                      if (vm.status != ExchangeRateStatus.loading)
+                        GestureDetector(
+                          onTap: vm.fetchRates,
+                          child: Icon(Icons.refresh,
+                              size: 18, color: colorScheme.onSurface),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              _buildBody(context, vm, t),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildBody(
+      BuildContext context, ExchangeRateViewModel vm, AppLocalizations t) {
+    switch (vm.status) {
+      case ExchangeRateStatus.loading:
+        return const Center(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        );
+      case ExchangeRateStatus.offline:
+        if (vm.rates == null) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              children: [
+                const Icon(Icons.wifi_off, size: 16, color: Colors.grey),
+                const SizedBox(width: 6),
+                Text(t.get('no_connection'),
+                    style: const TextStyle(color: Colors.grey)),
+              ],
+            ),
+          );
+        }
+        return _buildRates(context, vm, t);
+      case ExchangeRateStatus.error:
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Text(t.get('rates_error'),
+              style: const TextStyle(color: Colors.grey)),
+        );
+      case ExchangeRateStatus.loaded:
+        return _buildRates(context, vm, t);
+    }
+  }
+
+  Widget _buildRates(
+      BuildContext context, ExchangeRateViewModel vm, AppLocalizations t) {
+    final rates = vm.rates!;
+    final colorScheme = Theme.of(context).colorScheme;
+    return Column(
+      children: [
+        ...rates.rates.entries.map(
+          (e) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '${rates.base} → ${e.key}',
+                  style: TextStyle(
+                    color: colorScheme.onSurface,
+                    fontFamily: 'PoppinsRegular',
+                    fontSize: 13,
+                  ),
+                ),
+                Text(
+                  e.value.toStringAsFixed(4),
+                  style: const TextStyle(
+                    color: kprimarycolor,
+                    fontFamily: 'PoppinsMedium',
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (vm.isFromCache)
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Text(
+              '${t.get('cached_data')} · ${rates.date}',
+              style: TextStyle(
+                  color: Colors.orange.shade400,
+                  fontSize: 11,
+                  fontFamily: 'PoppinsLight'),
+            ),
+          ),
+      ],
     );
   }
 }
