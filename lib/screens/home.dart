@@ -5,6 +5,8 @@ import 'package:my_app/helpers/colors.dart';
 import 'package:my_app/locals/app_localizations.dart';
 import 'package:my_app/screens/cards.dart';
 import 'package:my_app/screens/drawer.dart';
+import 'package:my_app/screens/notifications_screen.dart';
+import 'package:my_app/screens/search_screen.dart';
 import 'package:my_app/screens/settings.dart';
 import 'package:my_app/viewmodels/exchange_rate_viewmodel.dart';
 import 'package:my_app/widgets/bottombarItems.dart';
@@ -44,11 +46,16 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SearchScreen()),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.all(4.0),
-            child: Image.asset(
-              'assets/images/user.png',
-            ),
+            child: Image.asset('assets/images/user.png'),
           ),
         ],
       ),
@@ -269,9 +276,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 GestureDetector(
                   onTap: () {
-                    setState(() {
-                      bottomIndex = 1;
-                    });
+                    setState(() => bottomIndex = 1);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const NotificationsScreen()),
+                    );
                   },
                   child: BottomItems(
                       active: bottomIndex == 1 ? true : false,

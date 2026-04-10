@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:my_app/locals/app_localizations.dart';
+import 'package:my_app/screens/search_screen.dart';
 import 'package:my_app/viewmodels/cards_viewmodel.dart';
+import 'package:my_app/viewmodels/transaction_viewmodel.dart';
 import 'package:my_app/widgets/add_card_sheet.dart';
 import 'package:my_app/widgets/payment_card_widget.dart';
 import 'package:my_app/widgets/shimmer_loading.dart';
@@ -151,16 +153,62 @@ class _CardScreenState extends State<CardScreen> {
     );
   }
 
+  // ── Transaction list ─────────────────────────────────────────────────────────
+
+  Widget _buildTransactions(
+      TransactionViewModel txVm, AppLocalizations t, double resHeight) {
+    if (txVm.isLoading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 20),
+        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      );
+    }
+    final transactions = txVm.transactions;
+    if (transactions.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Center(
+            child: Text(t.get('no_results'),
+                style: TextStyle(color: Colors.grey[500]))),
+      );
+    }
+    return Column(
+      children: transactions.map((tx) {
+        return Column(
+          children: [
+            TransactionWidget(
+              ammount: tx.formattedAmount,
+              date: _formatDate(tx.date),
+              image: tx.iconPath,
+              title: tx.title,
+            ),
+            SizedBox(height: resHeight * 0.015),
+          ],
+        );
+      }).toList(),
+    );
+  }
+
+  String _formatDate(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
+
   @override
   Widget build(BuildContext context) {
     final resHeight = MediaQuery.of(context).size.height;
     final t = AppLocalizations.of(context);
 
-    return Consumer<CardsViewModel>(
-      builder: (context, vm, _) => Scaffold(
+    return Consumer2<CardsViewModel, TransactionViewModel>(
+      builder: (context, vm, txVm, _) => Scaffold(
         appBar: AppBar(
-          actions: const [
-            Icon(Icons.more_vert, size: 25),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.search),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SearchScreen()),
+              ),
+            ),
+            const Icon(Icons.more_vert, size: 25),
           ],
         ),
         body: ListView(
@@ -197,31 +245,30 @@ class _CardScreenState extends State<CardScreen> {
             SizedBox(height: resHeight * 0.025),
             _buildCardSection(vm, resHeight),
             SizedBox(height: resHeight * 0.025),
-            Text(
-              t.get('recent_transactions'),
-              style: Theme.of(context).textTheme.headlineSmall,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  t.get('recent_transactions'),
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SearchScreen()),
+                  ),
+                  child: Text(
+                    t.get('search'),
+                    style: const TextStyle(
+                        color: Colors.blue,
+                        fontSize: 13,
+                        fontFamily: 'PoppinsRegular'),
+                  ),
+                ),
+              ],
             ),
             SizedBox(height: resHeight * 0.025),
-            TransactionWidget(
-              ammount: "+\$2,010",
-              date: t.get('date_june_14'),
-              image: 'assets/images/burger.png',
-              title: "KFC",
-            ),
-            SizedBox(height: resHeight * 0.015),
-            TransactionWidget(
-              ammount: "+\$12,010",
-              date: t.get('date_june_28'),
-              image: 'assets/images/paypal.png',
-              title: "Paypal",
-            ),
-            SizedBox(height: resHeight * 0.015),
-            TransactionWidget(
-              ammount: "+\$232,010",
-              date: t.get('date_aug_28'),
-              image: 'assets/images/maintenance.png',
-              title: "Car Repair",
-            ),
+            _buildTransactions(txVm, t, resHeight),
           ],
         ),
       ),
