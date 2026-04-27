@@ -5,6 +5,7 @@ import 'package:my_app/providers/settings_provider.dart';
 import 'package:my_app/screens/splash_screen.dart';
 import 'package:my_app/services/firebase_service.dart';
 import 'package:my_app/services/notification_service.dart';
+import 'package:my_app/viewmodels/auth_viewmodel.dart';
 import 'package:my_app/viewmodels/cards_viewmodel.dart';
 import 'package:my_app/viewmodels/exchange_rate_viewmodel.dart';
 import 'package:my_app/viewmodels/notification_viewmodel.dart';
@@ -36,6 +37,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: settingsProvider),
+        ChangeNotifierProvider(create: (_) => AuthViewModel()),
         ChangeNotifierProvider(create: (_) => CardsViewModel()),
         ChangeNotifierProvider(create: (_) => ExchangeRateViewModel()),
         ChangeNotifierProvider(create: (_) => TransactionViewModel()),

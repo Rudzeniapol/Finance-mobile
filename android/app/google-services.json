@@ -1,14 +1,13 @@
 {
-  "_comment": "PLACEHOLDER — replace this file with the real google-services.json downloaded from your Firebase project console (https://console.firebase.google.com).",
   "project_info": {
-    "project_number": "000000000000",
-    "project_id": "placeholder-firebase-id",
-    "storage_bucket": "placeholder-firebase-id.appspot.com"
+    "project_number": "892644495240",
+    "project_id": "selfinance-bec00",
+    "storage_bucket": "selfinance-bec00.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:000000000000:android:0000000000000000000000",
+        "mobilesdk_app_id": "1:892644495240:android:dffb7f46c7ce1b1e9cb43d",
         "android_client_info": {
           "package_name": "com.example.my_app"
         }
@@ -16,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaPlaceholder_ReplaceWithYourRealKey"
+          "current_key": "AIzaSyDzWw2wOOExHzHYUOgjOYeseW8_BOI5s-M"
         }
       ],
       "services": {

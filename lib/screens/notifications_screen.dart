@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:my_app/helpers/colors.dart';
 import 'package:my_app/locals/app_localizations.dart';
 import 'package:my_app/models/scheduled_notification.dart';
 import 'package:my_app/services/notification_service.dart';
@@ -11,6 +12,8 @@ class NotificationsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(t.get('notifications')),
@@ -22,19 +25,30 @@ class NotificationsScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.notifications_off_outlined,
-                      size: 60, color: Colors.grey[400]),
-                  const SizedBox(height: 12),
+                  Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      color: kPrimary.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Icon(Icons.notifications_off_outlined,
+                        size: 36, color: kPrimary.withValues(alpha: 0.5)),
+                  ),
+                  const SizedBox(height: 16),
                   Text(t.get('no_notifications'),
-                      style: TextStyle(color: Colors.grey[500])),
+                      style: TextStyle(
+                          color: colorScheme.onSurfaceVariant,
+                          fontFamily: 'PoppinsRegular',
+                          fontSize: 14)),
                 ],
               ),
             );
           }
           return ListView.separated(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(16),
             itemCount: vm.notifications.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            separatorBuilder: (_, __) => const SizedBox(height: 10),
             itemBuilder: (context, i) {
               final n = vm.notifications[i];
               return _NotificationTile(notification: n, vm: vm, t: t);
@@ -42,17 +56,38 @@ class NotificationsScreen extends StatelessWidget {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddSheet(context),
-        child: const Icon(Icons.add),
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          gradient: kGradientPrimary,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: kPrimary.withValues(alpha: 0.4),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: FloatingActionButton(
+          onPressed: () => _showAddSheet(context),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: const Icon(Icons.add_rounded, color: Colors.white),
+        ),
       ),
     );
   }
 
   Future<void> _showAddSheet(BuildContext context) async {
-    // Request permission before showing the sheet
-    await NotificationService.requestPermission();
+    final granted = await NotificationService.requestPermission();
+    print('[NotifScreen] Permission granted: $granted');
     if (!context.mounted) return;
+    if (!granted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Notification permission denied')),
+      );
+      return;
+    }
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -99,52 +134,99 @@ class _NotificationTile extends StatelessWidget {
             : t.get('repeat_once');
     }
 
+    final IconData icon = n.repeat == NotificationRepeat.once
+        ? Icons.alarm_rounded
+        : Icons.notifications_active_rounded;
+
     return Container(
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
       ),
-      child: ListTile(
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        leading: Icon(
-          n.repeat == NotificationRepeat.once
-              ? Icons.alarm
-              : Icons.notifications_active,
-          color: n.isActive ? Colors.blue : Colors.grey,
-        ),
-        title: Text(n.title,
-            style: TextStyle(
-              fontFamily: 'PoppinsMedium',
-              color: n.isActive
-                  ? colorScheme.onSurface
-                  : Colors.grey,
-            )),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
           children: [
-            Text(n.body,
-                style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis),
-            Text(scheduleLabel,
-                style: TextStyle(
-                    fontSize: 11,
-                    color: n.isActive ? Colors.blue : Colors.grey)),
-          ],
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Switch(
-              value: n.isActive,
-              activeColor: Colors.blue,
-              onChanged: (_) => vm.toggle(n.id),
+            // Icon
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: n.isActive
+                    ? kPrimary.withValues(alpha: 0.12)
+                    : colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(13),
+              ),
+              child: Icon(icon,
+                  size: 22,
+                  color: n.isActive
+                      ? kPrimary
+                      : colorScheme.onSurfaceVariant),
             ),
-            IconButton(
-              icon: const Icon(Icons.delete_outline,
-                  color: Colors.redAccent, size: 20),
-              onPressed: () => _confirmDelete(context),
+            const SizedBox(width: 12),
+            // Content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(n.title,
+                      style: TextStyle(
+                        fontFamily: 'PoppinsMedium',
+                        fontSize: 14,
+                        color: n.isActive
+                            ? colorScheme.onSurface
+                            : colorScheme.onSurfaceVariant,
+                      )),
+                  const SizedBox(height: 2),
+                  Text(n.body,
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: 'PoppinsLight',
+                          color: colorScheme.onSurfaceVariant),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis),
+                  const SizedBox(height: 4),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: n.isActive
+                          ? kPrimary.withValues(alpha: 0.08)
+                          : colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(scheduleLabel,
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontFamily: 'PoppinsRegular',
+                            color: n.isActive
+                                ? kPrimary
+                                : colorScheme.onSurfaceVariant)),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Actions
+            Column(
+              children: [
+                Switch(
+                  value: n.isActive,
+                  onChanged: (_) => vm.toggle(n.id),
+                ),
+                GestureDetector(
+                  onTap: () => _confirmDelete(context),
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: kDanger.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.delete_outline_rounded,
+                        color: kDanger, size: 16),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -153,19 +235,28 @@ class _NotificationTile extends StatelessWidget {
   }
 
   Future<void> _confirmDelete(BuildContext context) async {
+    final colorScheme = Theme.of(context).colorScheme;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(t.get('delete_notification')),
-        content: Text(notification.title),
+        backgroundColor: colorScheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(t.get('delete_notification'),
+            style: const TextStyle(fontFamily: 'PoppinsMedium')),
+        content: Text(notification.title,
+            style: TextStyle(
+                color: colorScheme.onSurfaceVariant,
+                fontFamily: 'PoppinsRegular')),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: Text(t.get('cancel'))),
+              child: Text(t.get('cancel'),
+                  style: TextStyle(color: colorScheme.onSurfaceVariant))),
           TextButton(
               onPressed: () => Navigator.pop(ctx, true),
               child: Text(t.get('delete'),
-                  style: const TextStyle(color: Colors.redAccent))),
+                  style: const TextStyle(
+                      color: kDanger, fontFamily: 'PoppinsMedium'))),
         ],
       ),
     );
@@ -192,7 +283,7 @@ class _AddNotificationSheetState extends State<_AddNotificationSheet> {
   final _bodyCtrl = TextEditingController();
   NotificationRepeat _repeat = NotificationRepeat.daily;
   TimeOfDay _time = const TimeOfDay(hour: 9, minute: 0);
-  int _weekday = 1; // Monday
+  int _weekday = 1;
   DateTime _oneTimeDate = DateTime.now().add(const Duration(hours: 1));
   bool _saving = false;
 
@@ -216,8 +307,8 @@ class _AddNotificationSheetState extends State<_AddNotificationSheet> {
       lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
     );
     if (picked != null) {
-      setState(() => _oneTimeDate =
-          DateTime(picked.year, picked.month, picked.day, _time.hour, _time.minute));
+      setState(() => _oneTimeDate = DateTime(
+          picked.year, picked.month, picked.day, _time.hour, _time.minute));
     }
   }
 
@@ -228,22 +319,26 @@ class _AddNotificationSheetState extends State<_AddNotificationSheet> {
 
     setState(() => _saving = true);
 
-    final vm = context.read<NotificationViewModel>();
-    final t = AppLocalizations.of(context, listen: false);
+    try {
+      final vm = context.read<NotificationViewModel>();
+      final t = AppLocalizations.of(context, listen: false);
 
-    final n = ScheduledNotification(
-      id: vm.nextId,
-      title: title,
-      body: body.isEmpty ? t.get('notification_default_body') : body,
-      repeat: _repeat,
-      hour: _time.hour,
-      minute: _time.minute,
-      weekday: _repeat == NotificationRepeat.weekly ? _weekday : null,
-      oneTimeDate: _repeat == NotificationRepeat.once ? _oneTimeDate : null,
-    );
+      final n = ScheduledNotification(
+        id: vm.nextId,
+        title: title,
+        body: body.isEmpty ? t.get('notification_default_body') : body,
+        repeat: _repeat,
+        hour: _time.hour,
+        minute: _time.minute,
+        weekday: _repeat == NotificationRepeat.weekly ? _weekday : null,
+        oneTimeDate: _repeat == NotificationRepeat.once ? _oneTimeDate : null,
+      );
 
-    await vm.add(n);
-    if (mounted) Navigator.pop(context);
+      await vm.add(n);
+      if (mounted) Navigator.pop(context);
+    } catch (_) {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   @override
@@ -272,47 +367,60 @@ class _AddNotificationSheetState extends State<_AddNotificationSheet> {
               // Handle
               Center(
                 child: Container(
-                    width: 40, height: 4,
+                    width: 36,
+                    height: 4,
                     decoration: BoxDecoration(
-                        color: Colors.grey[400],
+                        color: colorScheme.outline,
                         borderRadius: BorderRadius.circular(2))),
               ),
-              const SizedBox(height: 16),
-              Text(t.get('add_notification'),
-                  style: Theme.of(context).textTheme.headlineSmall),
               const SizedBox(height: 20),
+              Text(t.get('add_notification'),
+                  style: const TextStyle(
+                      fontFamily: 'PoppinsMedium', fontSize: 20)),
+              const SizedBox(height: 24),
 
               // Title
-              _fieldLabel(t.get('notification_title')),
-              const SizedBox(height: 6),
+              _FieldLabel(text: t.get('notification_title')),
+              const SizedBox(height: 8),
               TextField(
                 controller: _titleCtrl,
-                decoration: _inputDecoration(t.get('notification_title_hint')),
+                decoration: InputDecoration(
+                  hintText: t.get('notification_title_hint'),
+                  prefixIcon: Icon(Icons.title_rounded,
+                      size: 20, color: colorScheme.onSurfaceVariant),
+                ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
               // Body
-              _fieldLabel(t.get('notification_body')),
-              const SizedBox(height: 6),
+              _FieldLabel(text: t.get('notification_body')),
+              const SizedBox(height: 8),
               TextField(
                 controller: _bodyCtrl,
                 maxLines: 2,
-                decoration: _inputDecoration(t.get('notification_body_hint')),
+                decoration: InputDecoration(
+                  hintText: t.get('notification_body_hint'),
+                  prefixIcon: Padding(
+                    padding: const EdgeInsets.only(bottom: 24),
+                    child: Icon(Icons.message_outlined,
+                        size: 20, color: colorScheme.onSurfaceVariant),
+                  ),
+                ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
 
               // Repeat type
-              _fieldLabel(t.get('notification_repeat')),
-              const SizedBox(height: 8),
+              _FieldLabel(text: t.get('notification_repeat')),
+              const SizedBox(height: 10),
               _RepeatSelector(
                   selected: _repeat,
                   t: t,
                   onChanged: (r) => setState(() => _repeat = r)),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
 
               // Time picker
-              _fieldLabel(t.get('notification_time')),
-              const SizedBox(height: 6),
+              _FieldLabel(text: t.get('notification_time')),
+              const SizedBox(height: 8),
               GestureDetector(
                 onTap: _pickTime,
                 child: Container(
@@ -324,10 +432,14 @@ class _AddNotificationSheetState extends State<_AddNotificationSheet> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.access_time, size: 18),
-                      const SizedBox(width: 10),
+                      Icon(Icons.access_time_rounded,
+                          size: 20, color: kPrimary),
+                      const SizedBox(width: 12),
                       Text(
-                          '${_time.hour.toString().padLeft(2, '0')}:${_time.minute.toString().padLeft(2, '0')}'),
+                        '${_time.hour.toString().padLeft(2, '0')}:${_time.minute.toString().padLeft(2, '0')}',
+                        style: const TextStyle(
+                            fontFamily: 'PoppinsMedium', fontSize: 15),
+                      ),
                     ],
                   ),
                 ),
@@ -335,9 +447,9 @@ class _AddNotificationSheetState extends State<_AddNotificationSheet> {
 
               // Weekly: day picker
               if (_repeat == NotificationRepeat.weekly) ...[
-                const SizedBox(height: 20),
-                _fieldLabel(t.get('notification_weekday')),
-                const SizedBox(height: 8),
+                const SizedBox(height: 24),
+                _FieldLabel(text: t.get('notification_weekday')),
+                const SizedBox(height: 10),
                 _WeekdayPicker(
                     selected: _weekday,
                     t: t,
@@ -346,9 +458,9 @@ class _AddNotificationSheetState extends State<_AddNotificationSheet> {
 
               // Once: date picker
               if (_repeat == NotificationRepeat.once) ...[
-                const SizedBox(height: 20),
-                _fieldLabel(t.get('notification_date')),
-                const SizedBox(height: 6),
+                const SizedBox(height: 24),
+                _FieldLabel(text: t.get('notification_date')),
+                const SizedBox(height: 8),
                 GestureDetector(
                   onTap: _pickDate,
                   child: Container(
@@ -360,36 +472,56 @@ class _AddNotificationSheetState extends State<_AddNotificationSheet> {
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.calendar_today, size: 18),
-                        const SizedBox(width: 10),
+                        Icon(Icons.calendar_today_rounded,
+                            size: 20, color: kPrimary),
+                        const SizedBox(width: 12),
                         Text(
-                            '${_oneTimeDate.day.toString().padLeft(2, '0')}.${_oneTimeDate.month.toString().padLeft(2, '0')}.${_oneTimeDate.year}'),
+                          '${_oneTimeDate.day.toString().padLeft(2, '0')}.${_oneTimeDate.month.toString().padLeft(2, '0')}.${_oneTimeDate.year}',
+                          style: const TextStyle(
+                              fontFamily: 'PoppinsMedium', fontSize: 15),
+                        ),
                       ],
                     ),
                   ),
                 ),
               ],
 
-              const SizedBox(height: 28),
+              const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _saving ? null : _save,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
+                height: 52,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: kGradientPrimary,
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: kPrimary.withValues(alpha: 0.35),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  child: _saving
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white))
-                      : Text(t.get('schedule'),
-                          style: const TextStyle(
-                              color: Colors.white, fontFamily: 'PoppinsMedium')),
+                  child: ElevatedButton(
+                    onPressed: _saving ? null : _save,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                    ),
+                    child: _saving
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white))
+                        : Text(t.get('schedule'),
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontFamily: 'PoppinsMedium',
+                                fontSize: 15)),
+                  ),
                 ),
               ),
             ],
@@ -398,22 +530,20 @@ class _AddNotificationSheetState extends State<_AddNotificationSheet> {
       ),
     );
   }
+}
 
-  Widget _fieldLabel(String text) => Text(
+class _FieldLabel extends StatelessWidget {
+  final String text;
+  const _FieldLabel({required this.text});
+
+  @override
+  Widget build(BuildContext context) => Text(
         text,
-        style: const TextStyle(
-            fontFamily: 'PoppinsMedium', fontSize: 13, color: Colors.grey),
-      );
-
-  InputDecoration _inputDecoration(String hint) => InputDecoration(
-        hintText: hint,
-        hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
-        filled: true,
-        fillColor:
-            Theme.of(context).colorScheme.surfaceContainerHighest,
-        border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none),
+        style: TextStyle(
+          fontFamily: 'PoppinsMedium',
+          fontSize: 13,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
       );
 }
 
@@ -439,21 +569,30 @@ class _RepeatSelector extends StatelessWidget {
           child: GestureDetector(
             onTap: () => onChanged(r),
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              margin: const EdgeInsets.only(right: 6),
-              padding: const EdgeInsets.symmetric(vertical: 10),
+              duration: const Duration(milliseconds: 200),
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.symmetric(vertical: 11),
               decoration: BoxDecoration(
-                color:
-                    active ? Colors.blue : Colors.blue.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(10),
+                gradient: active ? kGradientPrimary : null,
+                color: active ? null : kPrimary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: active
+                    ? [
+                        BoxShadow(
+                          color: kPrimary.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        )
+                      ]
+                    : null,
               ),
               child: Center(
                 child: Text(
                   label,
                   style: TextStyle(
-                    color: active ? Colors.white : Colors.blue,
-                    fontSize: 12,
-                    fontFamily: 'PoppinsRegular',
+                    color: active ? Colors.white : kPrimary,
+                    fontSize: 13,
+                    fontFamily: active ? 'PoppinsMedium' : 'PoppinsRegular',
                   ),
                 ),
               ),
@@ -484,19 +623,30 @@ class _WeekdayPicker extends StatelessWidget {
           child: GestureDetector(
             onTap: () => onChanged(wd),
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
+              duration: const Duration(milliseconds: 200),
               margin: const EdgeInsets.only(right: 4),
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(
-                color: active ? Colors.blue : Colors.blue.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(8),
+                gradient: active ? kGradientPrimary : null,
+                color: active ? null : kPrimary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: active
+                    ? [
+                        BoxShadow(
+                          color: kPrimary.withValues(alpha: 0.25),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        )
+                      ]
+                    : null,
               ),
               child: Center(
                 child: Text(
                   t.get(keys[i]),
                   style: TextStyle(
-                    color: active ? Colors.white : Colors.blue,
-                    fontSize: 11,
+                    color: active ? Colors.white : kPrimary,
+                    fontSize: 12,
+                    fontFamily: active ? 'PoppinsMedium' : 'PoppinsRegular',
                   ),
                 ),
               ),

@@ -85,6 +85,12 @@ class AppLocalizations {
       'cached_data': 'Showing cached data',
       'rates_error': 'Could not load rates',
 
+      // ── Quick actions ───────────────────────────────────────────────────────
+      'send': 'Send',
+      'receive': 'Receive',
+      'services': 'Services',
+      'pay_bill': 'Pay Bill',
+
       // ── Search / Filter / Sort ──────────────────────────────────────────────
       'search': 'Search',
       'search_hint': 'Search cards and transactions…',
@@ -135,6 +141,41 @@ class AppLocalizations {
       'uploading': 'Uploading…',
       'upload_failed': 'Upload failed',
       'firebase_sync': 'Cloud Sync',
+
+      // ── Authentication ──────────────────────────────────────────────────────
+      'sign_in': 'Sign In',
+      'register': 'Register',
+      'sign_out': 'Sign Out',
+      'email': 'Email',
+      'password': 'Password',
+      'email_required': 'Email is required',
+      'email_invalid': 'Enter a valid email',
+      'password_required': 'Password is required',
+      'password_too_short': 'Min 6 characters',
+      'welcome_back': 'Welcome back to MyFinance',
+      'create_account_subtitle': 'Create your account to get started',
+      'already_have_account': 'Already have an account?',
+      'no_account': "Don't have an account?",
+
+      // ── Device features ─────────────────────────────────────────────────────
+      'device_features': 'Device Features',
+      'camera': 'Camera',
+      'take_photo': 'Take Photo',
+      'gallery': 'Gallery',
+      'geolocation': 'Geolocation',
+      'latitude': 'Latitude',
+      'longitude': 'Longitude',
+      'altitude': 'Altitude',
+      'speed': 'Speed',
+      'address': 'Address',
+      'get_location': 'Get Location',
+      'tap_to_get_location': 'Tap the button to get your location',
+      'accelerometer': 'Accelerometer',
+      'tilt_device': 'Tilt your device to move the dot',
+
+      // ── Social sharing ──────────────────────────────────────────────────────
+      'share_app': 'Share App',
+      'share': 'Share',
     },
     'ru': {
       
@@ -207,6 +248,12 @@ class AppLocalizations {
       'cached_data': 'Показаны кэшированные данные',
       'rates_error': 'Не удалось загрузить курсы',
 
+      // ── Быстрые действия ──────────────────────────────────────────────────
+      'send': 'Отправить',
+      'receive': 'Получить',
+      'services': 'Сервисы',
+      'pay_bill': 'Платежи',
+
       // ── Поиск / Фильтр / Сортировка ────────────────────────────────────────
       'search': 'Поиск',
       'search_hint': 'Поиск карт и транзакций…',
@@ -257,6 +304,41 @@ class AppLocalizations {
       'uploading': 'Загрузка…',
       'upload_failed': 'Ошибка загрузки',
       'firebase_sync': 'Облачная синхронизация',
+
+      // ── Аутентификация ──────────────────────────────────────────────────────
+      'sign_in': 'Войти',
+      'register': 'Регистрация',
+      'sign_out': 'Выйти',
+      'email': 'Электронная почта',
+      'password': 'Пароль',
+      'email_required': 'Введите email',
+      'email_invalid': 'Введите корректный email',
+      'password_required': 'Введите пароль',
+      'password_too_short': 'Мин. 6 символов',
+      'welcome_back': 'С возвращением в MyFinance',
+      'create_account_subtitle': 'Создайте аккаунт для начала работы',
+      'already_have_account': 'Уже есть аккаунт?',
+      'no_account': 'Нет аккаунта?',
+
+      // ── Функции устройства ─────────────────────────────────────────────────
+      'device_features': 'Устройство',
+      'camera': 'Камера',
+      'take_photo': 'Снять фото',
+      'gallery': 'Галерея',
+      'geolocation': 'Геолокация',
+      'latitude': 'Широта',
+      'longitude': 'Долгота',
+      'altitude': 'Высота',
+      'speed': 'Скорость',
+      'address': 'Адрес',
+      'get_location': 'Получить',
+      'tap_to_get_location': 'Нажмите кнопку для определения местоположения',
+      'accelerometer': 'Акселерометр',
+      'tilt_device': 'Наклоняйте устройство чтобы двигать точку',
+
+      // ── Поделиться ─────────────────────────────────────────────────────────
+      'share_app': 'Поделиться',
+      'share': 'Поделиться',
     },
   };
 }

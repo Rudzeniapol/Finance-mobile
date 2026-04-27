@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:my_app/helpers/colors.dart';
 import 'package:my_app/locals/app_localizations.dart';
 import 'package:my_app/models/payment_card.dart';
 import 'package:my_app/models/transaction.dart';
@@ -56,49 +57,78 @@ class _SearchScreenState extends State<SearchScreen> {
       context: context,
       backgroundColor: colorScheme.surface,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (_) => ListenableBuilder(
         listenable: _vm,
-        builder: (ctx, _) => Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 12),
-            Container(
-                width: 40, height: 4,
-                decoration: BoxDecoration(
-                    color: Colors.grey[400],
-                    borderRadius: BorderRadius.circular(2))),
-            const SizedBox(height: 12),
-            Text(t.get('sort_by'),
-                style: Theme.of(ctx).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            for (final field in SortField.values)
-              ListTile(
-                leading: Icon(_sortIcon(field)),
-                title: Text(_sortLabel(field, t)),
-                trailing: _vm.sortField == field
-                    ? Icon(
-                        _vm.sortDirection == SortDirection.asc
-                            ? Icons.arrow_upward
-                            : Icons.arrow_downward,
-                        color: Colors.blue)
-                    : null,
-                onTap: () {
-                  _vm.toggleSort(field);
-                  Navigator.pop(ctx);
-                },
-              ),
-            const SizedBox(height: 16),
-          ],
+        builder: (ctx, _) => Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                      color: colorScheme.outline,
+                      borderRadius: BorderRadius.circular(2))),
+              const SizedBox(height: 16),
+              Text(t.get('sort_by'),
+                  style: const TextStyle(
+                      fontFamily: 'PoppinsMedium', fontSize: 16)),
+              const SizedBox(height: 8),
+              for (final field in SortField.values)
+                ListTile(
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 20),
+                  leading: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: _vm.sortField == field
+                          ? kPrimary.withValues(alpha: 0.12)
+                          : colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(_sortIcon(field),
+                        size: 18,
+                        color: _vm.sortField == field
+                            ? kPrimary
+                            : colorScheme.onSurfaceVariant),
+                  ),
+                  title: Text(_sortLabel(field, t),
+                      style: const TextStyle(fontFamily: 'PoppinsRegular')),
+                  trailing: _vm.sortField == field
+                      ? Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: kPrimary.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                              _vm.sortDirection == SortDirection.asc
+                                  ? Icons.arrow_upward_rounded
+                                  : Icons.arrow_downward_rounded,
+                              color: kPrimary,
+                              size: 18),
+                        )
+                      : null,
+                  onTap: () {
+                    _vm.toggleSort(field);
+                    Navigator.pop(ctx);
+                  },
+                ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   IconData _sortIcon(SortField f) => switch (f) {
-        SortField.date => Icons.calendar_today,
-        SortField.amount => Icons.attach_money,
-        SortField.title => Icons.sort_by_alpha,
+        SortField.date => Icons.calendar_today_rounded,
+        SortField.amount => Icons.attach_money_rounded,
+        SortField.title => Icons.sort_by_alpha_rounded,
       };
 
   String _sortLabel(SortField f, AppLocalizations t) => switch (f) {
@@ -120,7 +150,8 @@ class _SearchScreenState extends State<SearchScreen> {
         return Consumer2<CardsViewModel, TransactionViewModel>(
           builder: (context, cardsVm, txVm, _) {
             final cards = _vm.filterCards(cardsVm.cards.toList());
-            final transactions = _vm.filterTransactions(txVm.transactions.toList());
+            final transactions =
+                _vm.filterTransactions(txVm.transactions.toList());
             final hasResults = cards.isNotEmpty || transactions.isNotEmpty;
 
             return Scaffold(
@@ -131,28 +162,49 @@ class _SearchScreenState extends State<SearchScreen> {
                   decoration: InputDecoration(
                     hintText: t.get('search_hint'),
                     border: InputBorder.none,
-                    hintStyle: TextStyle(color: Colors.grey[500]),
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    filled: false,
+                    hintStyle: TextStyle(
+                        color: colorScheme.onSurfaceVariant,
+                        fontFamily: 'PoppinsLight',
+                        fontSize: 15),
                   ),
                   style: Theme.of(context).textTheme.bodyLarge,
                   onChanged: _vm.setQuery,
                 ),
                 actions: [
                   if (_vm.hasActiveFilters)
-                    TextButton(
-                      onPressed: () {
+                    GestureDetector(
+                      onTap: () {
                         _controller.clear();
                         _vm.clearAll();
                       },
-                      child: Text(t.get('clear_filters'),
-                          style: const TextStyle(color: Colors.redAccent)),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        margin: const EdgeInsets.only(right: 12),
+                        decoration: BoxDecoration(
+                          color: kDanger.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(t.get('clear_filters'),
+                            style: const TextStyle(
+                                color: kDanger,
+                                fontSize: 12,
+                                fontFamily: 'PoppinsMedium')),
+                      ),
                     ),
                 ],
               ),
               body: Column(
                 children: [
                   // ── Filter & sort bar ──────────────────────────────────────
-                  _FilterBar(vm: _vm, onPickDate: () => _pickDateRange(context),
-                      onSort: () => _showSortSheet(context, t), t: t),
+                  _FilterBar(
+                      vm: _vm,
+                      onPickDate: () => _pickDateRange(context),
+                      onSort: () => _showSortSheet(context, t),
+                      t: t),
 
                   // ── Results ────────────────────────────────────────────────
                   Expanded(
@@ -160,22 +212,48 @@ class _SearchScreenState extends State<SearchScreen> {
                         ? _EmptySearch(t: t)
                         : !hasResults
                             ? Center(
-                                child: Text(t.get('no_results'),
-                                    style: TextStyle(color: Colors.grey[500])))
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      width: 56,
+                                      height: 56,
+                                      decoration: BoxDecoration(
+                                        color: colorScheme
+                                            .surfaceContainerHighest,
+                                        borderRadius:
+                                            BorderRadius.circular(16),
+                                      ),
+                                      child: Icon(
+                                          Icons.search_off_rounded,
+                                          size: 28,
+                                          color: colorScheme
+                                              .onSurfaceVariant),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(t.get('no_results'),
+                                        style: TextStyle(
+                                            color: colorScheme
+                                                .onSurfaceVariant,
+                                            fontFamily: 'PoppinsRegular')),
+                                  ],
+                                ),
+                              )
                             : ListView(
-                                padding: const EdgeInsets.all(12),
+                                padding: const EdgeInsets.all(16),
                                 children: [
                                   if (cards.isNotEmpty) ...[
-                                    _SectionHeader(label: t.get('cards_section')),
-                                    ...cards.map((c) => _CardTile(card: c,
-                                        colorScheme: colorScheme)),
-                                    const SizedBox(height: 8),
+                                    _SectionHeader(
+                                        label: t.get('cards_section')),
+                                    ...cards.map((c) => _CardTile(card: c)),
+                                    const SizedBox(height: 12),
                                   ],
                                   if (transactions.isNotEmpty) ...[
                                     _SectionHeader(
-                                        label: t.get('transactions_section')),
-                                    ...transactions.map((tx) => _TransactionTile(
-                                        tx: tx, colorScheme: colorScheme)),
+                                        label:
+                                            t.get('transactions_section')),
+                                    ...transactions
+                                        .map((tx) => _TransactionTile(tx: tx)),
                                   ],
                                 ],
                               ),
@@ -209,72 +287,89 @@ class _FilterBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      color: colorScheme.surface,
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(color: colorScheme.outline, width: 0.5),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Category chips
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
                 _CategoryChip(
                     label: t.get('filter_all'),
                     selected: vm.category == null,
                     onTap: () => vm.setCategory(null)),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 for (final cat in TransactionCategory.values)
                   Padding(
-                    padding: const EdgeInsets.only(right: 6),
+                    padding: const EdgeInsets.only(right: 8),
                     child: _CategoryChip(
                       label: _catLabel(cat, t),
                       selected: vm.category == cat,
-                      onTap: () => vm.setCategory(
-                          vm.category == cat ? null : cat),
+                      onTap: () =>
+                          vm.setCategory(vm.category == cat ? null : cat),
                     ),
                   ),
               ],
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
           // Date range + sort row
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
                 GestureDetector(
                   onTap: onPickDate,
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
                       color: vm.fromDate != null
-                          ? Colors.blue.withOpacity(0.15)
+                          ? kPrimary.withValues(alpha: 0.1)
                           : colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(10),
                       border: vm.fromDate != null
-                          ? Border.all(color: Colors.blue, width: 1)
+                          ? Border.all(
+                              color: kPrimary.withValues(alpha: 0.4),
+                              width: 1)
                           : null,
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.date_range, size: 14),
-                        const SizedBox(width: 4),
+                        Icon(Icons.date_range_rounded,
+                            size: 15,
+                            color: vm.fromDate != null
+                                ? kPrimary
+                                : colorScheme.onSurfaceVariant),
+                        const SizedBox(width: 6),
                         Text(
                           vm.fromDate != null
                               ? '${_fmt(vm.fromDate!)} – ${_fmt(vm.toDate!)}'
                               : t.get('date_range'),
-                          style: const TextStyle(fontSize: 12),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontFamily: 'PoppinsRegular',
+                            color: vm.fromDate != null
+                                ? kPrimary
+                                : colorScheme.onSurfaceVariant,
+                          ),
                         ),
                         if (vm.fromDate != null) ...[
-                          const SizedBox(width: 4),
+                          const SizedBox(width: 6),
                           GestureDetector(
                             onTap: () => vm.setDateRange(null, null),
-                            child: const Icon(Icons.close,
-                                size: 12, color: Colors.redAccent),
+                            child: const Icon(Icons.close_rounded,
+                                size: 14, color: kDanger),
                           ),
                         ],
                       ],
@@ -285,19 +380,24 @@ class _FilterBar extends StatelessWidget {
                 GestureDetector(
                   onTap: onSort,
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
                       color: colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.sort, size: 14),
-                        const SizedBox(width: 4),
+                        Icon(Icons.sort_rounded,
+                            size: 15,
+                            color: colorScheme.onSurfaceVariant),
+                        const SizedBox(width: 6),
                         Text(t.get('sort_by'),
-                            style: const TextStyle(fontSize: 12)),
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontFamily: 'PoppinsRegular',
+                                color: colorScheme.onSurfaceVariant)),
                       ],
                     ),
                   ),
@@ -336,18 +436,28 @@ class _CategoryChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
-          color: selected ? Colors.blue : Colors.blue.withOpacity(0.1),
+          gradient: selected ? kGradientPrimary : null,
+          color: selected ? null : kPrimary.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(20),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: kPrimary.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  )
+                ]
+              : null,
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: selected ? Colors.white : Colors.blue,
+            color: selected ? Colors.white : kPrimary,
             fontSize: 12,
-            fontFamily: 'PoppinsRegular',
+            fontFamily: selected ? 'PoppinsMedium' : 'PoppinsRegular',
           ),
         ),
       ),
@@ -361,89 +471,109 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 8, top: 4),
-        child: Text(label,
-            style: Theme.of(context)
-                .textTheme
-                .titleSmall
-                ?.copyWith(color: Colors.grey[500])),
+        padding: const EdgeInsets.only(bottom: 10, top: 4, left: 2),
+        child: Text(
+          label.toUpperCase(),
+          style: TextStyle(
+            fontFamily: 'PoppinsMedium',
+            fontSize: 11,
+            letterSpacing: 1.2,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
       );
 }
 
 class _CardTile extends StatelessWidget {
   final PaymentCard card;
-  final ColorScheme colorScheme;
-  const _CardTile({required this.card, required this.colorScheme});
-
-  @override
-  Widget build(BuildContext context) => Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: Color(card.colorValue),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.credit_card, color: Colors.white, size: 18),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(card.cardholderName,
-                      style: Theme.of(context).textTheme.bodyMedium),
-                  Text(
-                    '**** **** **** ${card.cardNumber.replaceAll(' ', '').substring(12)}',
-                    style: TextStyle(
-                        color: Colors.grey[500],
-                        fontSize: 12,
-                        fontFamily: 'PoppinsLight'),
-                  ),
-                ],
-              ),
-            ),
-            Text(card.expiryDate,
-                style: TextStyle(color: Colors.grey[500], fontSize: 12)),
-          ],
-        ),
-      );
-}
-
-class _TransactionTile extends StatelessWidget {
-  final AppTransaction tx;
-  final ColorScheme colorScheme;
-  const _TransactionTile({required this.tx, required this.colorScheme});
+  const _CardTile({required this.card});
 
   @override
   Widget build(BuildContext context) {
-    final isPositive = tx.amount >= 0;
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
         children: [
           Container(
-            width: 36,
-            height: 36,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
-              color: _catColor(tx.category).withOpacity(0.15),
-              borderRadius: BorderRadius.circular(8),
+              color: Color(card.colorValue).withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(_catIcon(tx.category),
-                color: _catColor(tx.category), size: 18),
+            child: Icon(Icons.credit_card_rounded,
+                color: Color(card.colorValue), size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(card.cardholderName,
+                    style: const TextStyle(
+                        fontFamily: 'PoppinsMedium', fontSize: 13)),
+                const SizedBox(height: 2),
+                Text(
+                  '**** **** **** ${card.cardNumber.replaceAll(' ', '').substring(12)}',
+                  style: TextStyle(
+                      color: colorScheme.onSurfaceVariant,
+                      fontSize: 12,
+                      fontFamily: 'PoppinsLight'),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(card.expiryDate,
+                style: TextStyle(
+                    color: colorScheme.onSurfaceVariant,
+                    fontSize: 11,
+                    fontFamily: 'PoppinsRegular')),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TransactionTile extends StatelessWidget {
+  final AppTransaction tx;
+  const _TransactionTile({required this.tx});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isPositive = tx.amount >= 0;
+    final catColor = _catColor(tx.category);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: catColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(_catIcon(tx.category), color: catColor, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -451,11 +581,13 @@ class _TransactionTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(tx.title,
-                    style: Theme.of(context).textTheme.bodyMedium),
+                    style: const TextStyle(
+                        fontFamily: 'PoppinsMedium', fontSize: 13)),
+                const SizedBox(height: 2),
                 Text(
-                  '${tx.date.day}.${tx.date.month}.${tx.date.year}',
+                  '${tx.date.day.toString().padLeft(2, '0')}.${tx.date.month.toString().padLeft(2, '0')}.${tx.date.year}',
                   style: TextStyle(
-                      color: Colors.grey[500],
+                      color: colorScheme.onSurfaceVariant,
                       fontSize: 12,
                       fontFamily: 'PoppinsLight'),
                 ),
@@ -465,9 +597,9 @@ class _TransactionTile extends StatelessWidget {
           Text(
             tx.formattedAmount,
             style: TextStyle(
-              color: isPositive ? Colors.green : Colors.redAccent,
+              color: isPositive ? kSuccess : kDanger,
               fontFamily: 'PoppinsMedium',
-              fontSize: 13,
+              fontSize: 14,
             ),
           ),
         ],
@@ -476,19 +608,19 @@ class _TransactionTile extends StatelessWidget {
   }
 
   IconData _catIcon(TransactionCategory c) => switch (c) {
-        TransactionCategory.food => Icons.fastfood,
-        TransactionCategory.transfer => Icons.swap_horiz,
-        TransactionCategory.shopping => Icons.shopping_bag,
-        TransactionCategory.utilities => Icons.bolt,
-        TransactionCategory.other => Icons.receipt,
+        TransactionCategory.food => Icons.fastfood_rounded,
+        TransactionCategory.transfer => Icons.swap_horiz_rounded,
+        TransactionCategory.shopping => Icons.shopping_bag_rounded,
+        TransactionCategory.utilities => Icons.bolt_rounded,
+        TransactionCategory.other => Icons.receipt_rounded,
       };
 
   Color _catColor(TransactionCategory c) => switch (c) {
-        TransactionCategory.food => Colors.orange,
-        TransactionCategory.transfer => Colors.blue,
-        TransactionCategory.shopping => Colors.purple,
-        TransactionCategory.utilities => Colors.teal,
-        TransactionCategory.other => Colors.grey,
+        TransactionCategory.food => kGold,
+        TransactionCategory.transfer => kPrimary,
+        TransactionCategory.shopping => kPrimary2,
+        TransactionCategory.utilities => kCyan,
+        TransactionCategory.other => kDarkMuted,
       };
 }
 
@@ -497,15 +629,30 @@ class _EmptySearch extends StatelessWidget {
   const _EmptySearch({required this.t});
 
   @override
-  Widget build(BuildContext context) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.search, size: 60, color: Colors.grey[400]),
-            const SizedBox(height: 12),
-            Text(t.get('search_hint'),
-                style: TextStyle(color: Colors.grey[500], fontSize: 14)),
-          ],
-        ),
-      );
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: kPrimary.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Icon(Icons.search_rounded,
+                size: 36, color: kPrimary.withValues(alpha: 0.5)),
+          ),
+          const SizedBox(height: 16),
+          Text(t.get('search_hint'),
+              style: TextStyle(
+                  color: colorScheme.onSurfaceVariant,
+                  fontSize: 14,
+                  fontFamily: 'PoppinsRegular')),
+        ],
+      ),
+    );
+  }
 }

@@ -37,6 +37,9 @@ class NotificationViewModel extends ChangeNotifier {
   Future<void> add(ScheduledNotification n) async {
     _notifications.add(n);
     await NotificationService.scheduleNotification(n);
+    // DEBUG: fire an immediate notification to verify the system works
+    await NotificationService.showNow(
+        'Test: ${n.title}', 'Notification system is working!');
     await _save();
     notifyListeners();
   }

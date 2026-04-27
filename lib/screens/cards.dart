@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:my_app/helpers/colors.dart';
 import 'package:my_app/locals/app_localizations.dart';
 import 'package:my_app/screens/search_screen.dart';
 import 'package:my_app/viewmodels/cards_viewmodel.dart';
@@ -23,7 +24,7 @@ class _CardScreenState extends State<CardScreen> {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(viewportFraction: 0.95);
+    _pageController = PageController(viewportFraction: 0.92);
   }
 
   @override
@@ -51,21 +52,28 @@ class _CardScreenState extends State<CardScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: colorScheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(t.get('delete_card'),
-            style: TextStyle(color: colorScheme.onSurface)),
+            style: TextStyle(
+                fontFamily: 'PoppinsMedium',
+                color: colorScheme.onSurface)),
         content: Text(
           t.get('delete_card_confirm'),
-          style: const TextStyle(color: Colors.grey),
+          style: TextStyle(
+              color: colorScheme.onSurfaceVariant,
+              fontFamily: 'PoppinsRegular'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text(t.get('cancel')),
+            child: Text(t.get('cancel'),
+                style: TextStyle(color: colorScheme.onSurfaceVariant)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(t.get('delete'),
-                style: const TextStyle(color: Colors.redAccent)),
+                style: const TextStyle(
+                    color: kDanger, fontFamily: 'PoppinsMedium')),
           ),
         ],
       ),
@@ -93,39 +101,55 @@ class _CardScreenState extends State<CardScreen> {
     return t.get('you_have_n_cards').replaceAll('{count}', count.toString());
   }
 
-  Widget _buildCardSection(CardsViewModel vm, double resHeight) {
+  Widget _buildCardSection(CardsViewModel vm) {
     final t = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
+
     if (vm.isLoading) {
       return const ShimmerCardLoading();
     }
+
     if (vm.cards.isEmpty) {
       return Container(
-        height: 180,
+        height: 190,
+        margin: const EdgeInsets.symmetric(horizontal: 4),
         decoration: BoxDecoration(
           color: colorScheme.surface,
           borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: colorScheme.outline,
+            width: 1,
+          ),
         ),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.credit_card_off, color: Colors.grey[600], size: 40),
-              const SizedBox(height: 8),
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(Icons.credit_card_off_rounded,
+                    color: colorScheme.onSurfaceVariant, size: 28),
+              ),
+              const SizedBox(height: 12),
               Text(
                 t.get('no_cards_yet'),
                 style: TextStyle(
-                  color: Colors.grey[500],
-                  fontFamily: "PoppinsLight",
-                  fontSize: 16,
+                  color: colorScheme.onSurface,
+                  fontFamily: 'PoppinsMedium',
+                  fontSize: 15,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 t.get('tap_to_add'),
                 style: TextStyle(
-                  color: Colors.grey[700],
-                  fontFamily: "PoppinsLight",
+                  color: colorScheme.onSurfaceVariant,
+                  fontFamily: 'PoppinsLight',
                   fontSize: 13,
                 ),
               ),
@@ -134,12 +158,13 @@ class _CardScreenState extends State<CardScreen> {
         ),
       );
     }
+
     return SizedBox(
       height: 200,
       child: PageView.builder(
         itemCount: vm.cards.length,
         controller: _pageController,
-        onPageChanged: (index) => _currentPage = index,
+        onPageChanged: (index) => setState(() => _currentPage = index),
         itemBuilder: (context, index) {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -153,37 +178,71 @@ class _CardScreenState extends State<CardScreen> {
     );
   }
 
-  // ── Transaction list ─────────────────────────────────────────────────────────
+  Widget _buildPageIndicator(int count) {
+    if (count <= 1) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(count, (i) {
+          final active = i == _currentPage;
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            margin: const EdgeInsets.symmetric(horizontal: 3),
+            width: active ? 20 : 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: active ? kPrimary : kPrimary.withValues(alpha: 0.25),
+              borderRadius: BorderRadius.circular(3),
+            ),
+          );
+        }),
+      ),
+    );
+  }
 
-  Widget _buildTransactions(
-      TransactionViewModel txVm, AppLocalizations t, double resHeight) {
+  Widget _buildTransactions(TransactionViewModel txVm, AppLocalizations t) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     if (txVm.isLoading) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 20),
-        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        child: Center(
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: kPrimary.withValues(alpha: 0.6),
+            ),
+          ),
+        ),
       );
     }
+
     final transactions = txVm.transactions;
     if (transactions.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 20),
+        padding: const EdgeInsets.symmetric(vertical: 24),
         child: Center(
-            child: Text(t.get('no_results'),
-                style: TextStyle(color: Colors.grey[500]))),
+          child: Text(t.get('no_results'),
+              style: TextStyle(
+                  color: colorScheme.onSurfaceVariant,
+                  fontFamily: 'PoppinsLight')),
+        ),
       );
     }
+
     return Column(
       children: transactions.map((tx) {
-        return Column(
-          children: [
-            TransactionWidget(
-              ammount: tx.formattedAmount,
-              date: _formatDate(tx.date),
-              image: tx.iconPath,
-              title: tx.title,
-            ),
-            SizedBox(height: resHeight * 0.015),
-          ],
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: TransactionWidget(
+            ammount: tx.formattedAmount,
+            date: _formatDate(tx.date),
+            image: tx.iconPath,
+            title: tx.title,
+          ),
         );
       }).toList(),
     );
@@ -194,27 +253,39 @@ class _CardScreenState extends State<CardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final resHeight = MediaQuery.of(context).size.height;
     final t = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Consumer2<CardsViewModel, TransactionViewModel>(
       builder: (context, vm, txVm, _) => Scaffold(
         appBar: AppBar(
+          title: Text(t.get('your_cards')),
           actions: [
-            IconButton(
-              icon: const Icon(Icons.search),
-              onPressed: () => Navigator.push(
+            GestureDetector(
+              onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const SearchScreen()),
               ),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                margin: const EdgeInsets.only(right: 4),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.search_rounded,
+                    size: 20, color: colorScheme.onSurfaceVariant),
+              ),
             ),
-            const Icon(Icons.more_vert, size: 25),
+            const SizedBox(width: 8),
           ],
         ),
         body: ListView(
-          padding: const EdgeInsets.only(left: 10, right: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           children: [
-            SizedBox(height: resHeight * 0.025),
+            const SizedBox(height: 8),
+
+            // ── Card count + add button ────────────────────────────────────
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -222,53 +293,86 @@ class _CardScreenState extends State<CardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      t.get('your_cards'),
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    Text(
                       _cardCountText(context, vm.count),
-                      style: Theme.of(context).textTheme.bodyLarge,
+                      style: TextStyle(
+                        fontFamily: 'PoppinsRegular',
+                        fontSize: 13,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
-                MaterialButton(
-                  onPressed: () => _addCard(vm),
-                  color: const Color(0xffffd674),
-                  textColor: Colors.black,
-                  shape: const CircleBorder(),
-                  padding: const EdgeInsets.all(8.0),
-                  minWidth: 0,
-                  child: const Icon(Icons.add, size: 30),
+                GestureDetector(
+                  onTap: () => _addCard(vm),
+                  child: Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: kGold,
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: kGold.withValues(alpha: 0.35),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(Icons.add_rounded,
+                        size: 24, color: Colors.black),
+                  ),
                 ),
               ],
             ),
-            SizedBox(height: resHeight * 0.025),
-            _buildCardSection(vm, resHeight),
-            SizedBox(height: resHeight * 0.025),
+
+            const SizedBox(height: 16),
+
+            // ── Cards carousel ─────────────────────────────────────────────
+            _buildCardSection(vm),
+            _buildPageIndicator(vm.cards.length),
+
+            const SizedBox(height: 28),
+
+            // ── Transactions header ────────────────────────────────────────
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   t.get('recent_transactions'),
-                  style: Theme.of(context).textTheme.headlineSmall,
+                  style: const TextStyle(
+                    fontFamily: 'PoppinsMedium',
+                    fontSize: 16,
+                  ),
                 ),
                 GestureDetector(
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const SearchScreen()),
                   ),
-                  child: Text(
-                    t.get('search'),
-                    style: const TextStyle(
-                        color: Colors.blue,
-                        fontSize: 13,
-                        fontFamily: 'PoppinsRegular'),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: kPrimary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      t.get('search'),
+                      style: const TextStyle(
+                        color: kPrimary,
+                        fontSize: 12,
+                        fontFamily: 'PoppinsMedium',
+                      ),
+                    ),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: resHeight * 0.025),
-            _buildTransactions(txVm, t, resHeight),
+            const SizedBox(height: 12),
+
+            // ── Transaction list ───────────────────────────────────────────
+            _buildTransactions(txVm, t),
+            const SizedBox(height: 20),
           ],
         ),
       ),

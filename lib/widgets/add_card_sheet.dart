@@ -16,16 +16,18 @@ class _AddCardSheetState extends State<AddCardSheet> {
   final _nameController = TextEditingController();
   final _expiryController = TextEditingController();
 
-  static const List<Color> _colorOptions = [
-    Colors.blue,
-    Colors.purple,
-    Colors.teal,
-    Colors.orange,
-    Colors.indigo,
-    Color(0xffDAA520),
+  // Six gradient pairs — each maps to a card theme
+  static const List<List<Color>> _gradients = [
+    [Color(0xFF4C6EF5), Color(0xFF845EF7)], // indigo-violet
+    [Color(0xFF11998E), Color(0xFF38EF7D)], // teal-green
+    [Color(0xFFEB3349), Color(0xFFF45C43)], // red-coral
+    [Color(0xFF6A11CB), Color(0xFF2575FC)], // purple-blue
+    [Color(0xFFFF8C00), Color(0xFFFFD700)], // amber-gold
+    [Color(0xFF1F2A40), Color(0xFF3D4F70)], // slate-navy
   ];
 
-  int _selectedColorIndex = 0;
+  // Store solid colour for card (derived from gradient start)
+  int _selectedIndex = 0;
 
   @override
   void dispose() {
@@ -35,33 +37,15 @@ class _AddCardSheetState extends State<AddCardSheet> {
     super.dispose();
   }
 
-  /// Luhn algorithm to validate card numbers.
-  static bool _luhnCheck(String digits) {
-    int sum = 0;
-    bool alternate = false;
-    for (int i = digits.length - 1; i >= 0; i--) {
-      int n = int.parse(digits[i]);
-      if (alternate) {
-        n *= 2;
-        if (n > 9) n -= 9;
-      }
-      sum += n;
-      alternate = !alternate;
-    }
-    return sum % 10 == 0;
-  }
-
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
-
     final card = PaymentCard(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       cardNumber: _cardNumberController.text.trim(),
       cardholderName: _nameController.text.trim(),
       expiryDate: _expiryController.text.trim(),
-      colorValue: _colorOptions[_selectedColorIndex].toARGB32(),
+      colorValue: _gradients[_selectedIndex][0].toARGB32(),
     );
-
     Navigator.pop(context, card);
   }
 
@@ -69,16 +53,17 @@ class _AddCardSheetState extends State<AddCardSheet> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final t = AppLocalizations.of(context);
+
     return Container(
       padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+        left: 24,
+        right: 24,
+        top: 16,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
       ),
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Form(
         key: _formKey,
@@ -87,32 +72,50 @@ class _AddCardSheetState extends State<AddCardSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Handle
               Center(
                 child: Container(
-                  width: 40,
+                  width: 36,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey[600],
+                    color: colorScheme.outline,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
-              Text(
-                t.get('add_new_card'),
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
               const SizedBox(height: 20),
+
+              // Card preview mini
+              _CardPreview(
+                gradient: _gradients[_selectedIndex],
+                number: _cardNumberController.text.isEmpty
+                    ? '•••• •••• •••• ••••'
+                    : _cardNumberController.text,
+                name: _nameController.text.isEmpty
+                    ? t.get('cardholder_hint')
+                    : _nameController.text.toUpperCase(),
+                expiry: _expiryController.text.isEmpty
+                    ? '••/••'
+                    : _expiryController.text,
+              ),
+              const SizedBox(height: 24),
+
+              Text(t.get('add_new_card'),
+                  style: Theme.of(context).textTheme.headlineSmall),
+              const SizedBox(height: 20),
+
+              // Card number
               _buildField(
                 controller: _cardNumberController,
                 label: t.get('card_number'),
                 hint: t.get('card_number_hint'),
+                icon: Icons.credit_card_outlined,
                 keyboardType: TextInputType.number,
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
                   _CardNumberFormatter(),
                 ],
-                maxLength: 19, // 16 digits + 3 spaces
+                maxLength: 19,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return t.get('card_number_required');
@@ -121,25 +124,24 @@ class _AddCardSheetState extends State<AddCardSheet> {
                   if (!RegExp(r'^\d+$').hasMatch(digits)) {
                     return t.get('card_number_digits_only');
                   }
-                  if (digits.length != 16) {
-                    return t.get('card_number_invalid');
-                  }
+                  if (digits.length != 16) return t.get('card_number_invalid');
                   return null;
                 },
               ),
               const SizedBox(height: 14),
+
+              // Cardholder name
               _buildField(
                 controller: _nameController,
                 label: t.get('cardholder_name'),
                 hint: t.get('cardholder_hint'),
+                icon: Icons.person_outline,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return t.get('name_required');
                   }
                   final trimmed = value.trim();
-                  if (trimmed.length < 2) {
-                    return t.get('name_too_short');
-                  }
+                  if (trimmed.length < 2) return t.get('name_too_short');
                   if (!RegExp(r'^[a-zA-Zа-яА-ЯёЁ\s\-]+$').hasMatch(trimmed)) {
                     return t.get('name_letters_only');
                   }
@@ -147,16 +149,19 @@ class _AddCardSheetState extends State<AddCardSheet> {
                 },
               ),
               const SizedBox(height: 14),
+
+              // Expiry date
               _buildField(
                 controller: _expiryController,
                 label: t.get('expiry_date'),
                 hint: t.get('expiry_hint'),
+                icon: Icons.calendar_month_outlined,
                 keyboardType: TextInputType.number,
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
                   _ExpiryDateFormatter(),
                 ],
-                maxLength: 5, // MM/YY
+                maxLength: 5,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return t.get('expiry_required');
@@ -168,68 +173,68 @@ class _AddCardSheetState extends State<AddCardSheet> {
                   final parts = trimmed.split('/');
                   final month = int.parse(parts[0]);
                   final year = int.parse(parts[1]);
-                  if (month < 1 || month > 12) {
-                    return t.get('expiry_invalid_month');
-                  }
+                  if (month < 1 || month > 12) return t.get('expiry_invalid_month');
                   final now = DateTime.now();
-                  final currentYear = now.year % 100;
-                  final currentMonth = now.month;
-                  if (year < currentYear ||
-                      (year == currentYear && month < currentMonth)) {
+                  if (year < now.year % 100 ||
+                      (year == now.year % 100 && month < now.month)) {
                     return t.get('expiry_expired');
                   }
                   return null;
                 },
               ),
-              const SizedBox(height: 18),
-              Text(
-                t.get('card_color'),
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 20),
+
+              // Colour / gradient picker
+              Text(t.get('card_color'),
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant)),
+              const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: List.generate(_colorOptions.length, (index) {
-                  final isSelected = index == _selectedColorIndex;
+                children: List.generate(_gradients.length, (i) {
+                  final isSelected = i == _selectedIndex;
                   return GestureDetector(
-                    onTap: () => setState(() => _selectedColorIndex = index),
-                    child: Container(
-                      width: 40,
-                      height: 40,
+                    onTap: () => setState(() => _selectedIndex = i),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      width: 44,
+                      height: 44,
                       decoration: BoxDecoration(
-                        color: _colorOptions[index],
                         shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: _gradients[i],
+                        ),
                         border: isSelected
-                            ? Border.all(color: colorScheme.onSurface, width: 3)
+                            ? Border.all(color: colorScheme.onSurface, width: 2.5)
+                            : Border.all(color: Colors.transparent, width: 2.5),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: _gradients[i][0].withValues(alpha: 0.5),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 3),
+                                )
+                              ]
                             : null,
                       ),
                       child: isSelected
-                          ? Icon(Icons.check, color: Colors.white, size: 20)
+                          ? const Icon(Icons.check, color: Colors.white, size: 20)
                           : null,
                     ),
                   );
                 }),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 28),
+
+              // Submit
               SizedBox(
                 width: double.infinity,
-                height: 50,
+                height: 52,
                 child: ElevatedButton(
                   onPressed: _submit,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xffffd674),
-                    foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                  child: Text(
-                    t.get('add_card'),
-                    style: const TextStyle(
-                      fontFamily: "PoppinsMedium",
-                      fontSize: 16,
-                    ),
-                  ),
+                  child: Text(t.get('add_card')),
                 ),
               ),
             ],
@@ -243,49 +248,125 @@ class _AddCardSheetState extends State<AddCardSheet> {
     required TextEditingController controller,
     required String label,
     required String hint,
+    required IconData icon,
     TextInputType keyboardType = TextInputType.text,
     String? Function(String?)? validator,
     List<TextInputFormatter>? inputFormatters,
     int? maxLength,
   }) {
-    final colorScheme = Theme.of(context).colorScheme;
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       validator: validator,
       inputFormatters: inputFormatters,
       maxLength: maxLength,
-      style: TextStyle(color: colorScheme.onSurface, fontFamily: "PoppinsRegular"),
+      onChanged: (_) => setState(() {}), // refresh card preview
+      style: TextStyle(
+        color: Theme.of(context).colorScheme.onSurface,
+        fontFamily: 'PoppinsRegular',
+      ),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
         counterText: '',
-        labelStyle: TextStyle(color: Colors.grey[400], fontFamily: "PoppinsLight"),
-        hintStyle: TextStyle(color: Colors.grey[600], fontFamily: "PoppinsLight"),
-        filled: true,
-        fillColor: colorScheme.surface,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+        prefixIcon: Icon(icon, size: 20,
+            color: Theme.of(context).colorScheme.onSurfaceVariant),
+      ),
+    );
+  }
+}
+
+// ── Live card preview ─────────────────────────────────────────────────────────
+
+class _CardPreview extends StatelessWidget {
+  final List<Color> gradient;
+  final String number;
+  final String name;
+  final String expiry;
+
+  const _CardPreview({
+    required this.gradient,
+    required this.number,
+    required this.name,
+    required this.expiry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 160,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: gradient,
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xffffd674)),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.redAccent),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.redAccent),
+        boxShadow: [
+          BoxShadow(
+            color: gradient[0].withValues(alpha: 0.4),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Chip placeholder
+            Container(
+              width: 36,
+              height: 26,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+            // Card number
+            Text(
+              number,
+              style: const TextStyle(
+                fontFamily: 'PoppinsMedium',
+                fontSize: 16,
+                color: Colors.white,
+                letterSpacing: 2,
+              ),
+            ),
+            // Bottom row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  name,
+                  style: TextStyle(
+                    fontFamily: 'PoppinsRegular',
+                    fontSize: 11,
+                    color: Colors.white.withValues(alpha: 0.8),
+                    letterSpacing: 1,
+                  ),
+                ),
+                Text(
+                  expiry,
+                  style: const TextStyle(
+                    fontFamily: 'PoppinsMedium',
+                    fontSize: 13,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-/// Formats card number input as groups of 4 digits: "1234 5678 9012 3456"
+// ── Input formatters ──────────────────────────────────────────────────────────
+
 class _CardNumberFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
@@ -304,7 +385,6 @@ class _CardNumberFormatter extends TextInputFormatter {
   }
 }
 
-/// Formats expiry input as "MM/YY" automatically inserting the slash.
 class _ExpiryDateFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(

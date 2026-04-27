@@ -23,7 +23,8 @@ class NotificationService {
   static Future<bool> requestPermission() async {
     final impl = _plugin.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
-    return (await impl?.requestNotificationsPermission()) ?? false;
+    if (impl == null) return false;
+    return (await impl.requestNotificationsPermission()) ?? false;
   }
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -60,44 +61,62 @@ class NotificationService {
 
   // ── Schedule / Cancel ────────────────────────────────────────────────────────
 
+  /// Send a notification immediately (for testing).
+  static Future<void> showNow(String title, String body) async {
+    await _plugin.show(0, title, body, _details);
+    print('[NotifService] showNow fired');
+  }
+
   static Future<void> scheduleNotification(ScheduledNotification n) async {
     await cancel(n.id); // always cancel old instance first
-    if (!n.isActive) return;
+    if (!n.isActive) {
+      print('[NotifService] id=${n.id} is inactive, skipped');
+      return;
+    }
 
     switch (n.repeat) {
       case NotificationRepeat.once:
         if (n.oneTimeDate == null) return;
         final when = tz.TZDateTime.from(n.oneTimeDate!, tz.local);
-        if (!when.isAfter(tz.TZDateTime.now(tz.local))) return;
+        final now = tz.TZDateTime.now(tz.local);
+        print('[NotifService] ONCE: when=$when, now=$now, isAfter=${when.isAfter(now)}');
+        if (!when.isAfter(now)) return;
         await _plugin.zonedSchedule(
           n.id, n.title, n.body, when, _details,
-          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
           uiLocalNotificationDateInterpretation:
               UILocalNotificationDateInterpretation.absoluteTime,
         );
 
       case NotificationRepeat.daily:
+        final scheduled = _nextInstance(n.hour, n.minute);
+        print('[NotifService] DAILY: scheduled=$scheduled');
         await _plugin.zonedSchedule(
           n.id, n.title, n.body,
-          _nextInstance(n.hour, n.minute),
+          scheduled,
           _details,
-          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
           matchDateTimeComponents: DateTimeComponents.time,
           uiLocalNotificationDateInterpretation:
               UILocalNotificationDateInterpretation.absoluteTime,
         );
 
       case NotificationRepeat.weekly:
+        final scheduled = _nextInstance(n.hour, n.minute, weekday: n.weekday);
+        print('[NotifService] WEEKLY: scheduled=$scheduled');
         await _plugin.zonedSchedule(
           n.id, n.title, n.body,
-          _nextInstance(n.hour, n.minute, weekday: n.weekday),
+          scheduled,
           _details,
-          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
           matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
           uiLocalNotificationDateInterpretation:
               UILocalNotificationDateInterpretation.absoluteTime,
         );
     }
+
+    final pending = await getPending();
+    print('[NotifService] Pending notifications: ${pending.length}');
   }
 
   static Future<void> cancel(int id) => _plugin.cancel(id);

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:my_app/helpers/colors.dart';
 
+/// Animated shimmer placeholder rendered while cards load.
 class ShimmerCardLoading extends StatefulWidget {
   const ShimmerCardLoading({super.key});
 
@@ -9,128 +11,104 @@ class ShimmerCardLoading extends StatefulWidget {
 
 class _ShimmerCardLoadingState extends State<ShimmerCardLoading>
     with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
+  late final AnimationController _ctrl;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
+    _ctrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1400),
     )..repeat();
-    _controller.addListener(() {
-      setState(() {});
-    });
+    _ctrl.addListener(() => setState(() {}));
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _ctrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final base    = isDark ? kDarkCard  : const Color(0xFFE8EDFF);
+    final shimmer = isDark ? kDarkCard2 : const Color(0xFFCED8FF);
+
     return Container(
+      height: 200,
       margin: const EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
+        color: base,
+        borderRadius: BorderRadius.circular(24),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [kPrimary.withValues(alpha: 0.6), kPrimary2.withValues(alpha: 0.6)],
+        ),
       ),
       child: ShaderMask(
-        shaderCallback: (bounds) {
-          return LinearGradient(
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-            colors: [
-              Colors.white.withValues(alpha: 0.05),
-              Colors.white.withValues(alpha: 0.15),
-              Colors.white.withValues(alpha: 0.05),
-            ],
-            stops: [
-              (_controller.value - 0.3).clamp(0.0, 1.0),
-              _controller.value,
-              (_controller.value + 0.3).clamp(0.0, 1.0),
-            ],
-          ).createShader(bounds);
-        },
+        shaderCallback: (bounds) => LinearGradient(
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+          colors: [
+            shimmer.withValues(alpha: 0.0),
+            shimmer.withValues(alpha: 0.5),
+            shimmer.withValues(alpha: 0.0),
+          ],
+          stops: [
+            (_ctrl.value - 0.35).clamp(0.0, 1.0),
+            _ctrl.value.clamp(0.0, 1.0),
+            (_ctrl.value + 0.35).clamp(0.0, 1.0),
+          ],
+        ).createShader(bounds),
         blendMode: BlendMode.srcATop,
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Chip placeholder
-              Container(
-                width: 50,
-                height: 35,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(6),
-                ),
+              // Chip + delete placeholder
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _box(44, 30, radius: 6),
+                  _box(36, 36, radius: 10),
+                ],
               ),
-              const SizedBox(height: 10),
-              // Card number placeholder
-              Container(
-                width: 250,
-                height: 22,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-              const SizedBox(height: 8),
-              // Name placeholder
-              Container(
-                width: 120,
-                height: 16,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-              const SizedBox(height: 12),
-              // Expiry row placeholder
+              // Card number
+              _box(220, 20, radius: 6),
+              // Name
+              _box(130, 14, radius: 4),
+              // Expiry + logo row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        width: 80,
-                        height: 12,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
+                      _box(60, 10, radius: 3),
                       const SizedBox(height: 4),
-                      Container(
-                        width: 60,
-                        height: 14,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
+                      _box(50, 14, radius: 4),
                     ],
                   ),
-                  Container(
-                    width: 50,
-                    height: 30,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
+                  _box(46, 30, radius: 6),
                 ],
-              )
+              ),
             ],
           ),
         ),
       ),
     );
   }
+
+  Widget _box(double w, double h, {double radius = 4}) => Container(
+        width: w,
+        height: h,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.18),
+          borderRadius: BorderRadius.circular(radius),
+        ),
+      );
 }

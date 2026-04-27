@@ -24,41 +24,64 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final res_width = MediaQuery.of(context).size.width;
-    final res_height = MediaQuery.of(context).size.height;
+    final resHeight = MediaQuery.of(context).size.height;
     final colorScheme = Theme.of(context).colorScheme;
     final t = AppLocalizations.of(context);
 
     return Scaffold(
       key: _scaffoldKey,
-      drawer: DrawerScreen(),
+      drawer: const DrawerScreen(),
+
+      // ── App bar ────────────────────────────────────────────────────────
       appBar: AppBar(
         leading: GestureDetector(
-          onTap: () {
-            _scaffoldKey.currentState!.openDrawer();
-          },
+          onTap: () => _scaffoldKey.currentState!.openDrawer(),
           child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Image.asset(
-              'assets/images/menu.png',
-              color: colorScheme.onSurface,
+            padding: const EdgeInsets.all(10),
+            child: Container(
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(6),
+                child: Image.asset(
+                  'assets/images/menu.png',
+                  color: colorScheme.onSurface,
+                ),
+              ),
             ),
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.search),
+            icon: Icon(Icons.search, color: colorScheme.onSurface),
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const SearchScreen()),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(4.0),
-            child: Image.asset('assets/images/user.png'),
+            padding: const EdgeInsets.only(right: 12),
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: kPrimary.withValues(alpha: 0.3),
+                  width: 2,
+                ),
+              ),
+              child: ClipOval(
+                child: Image.asset('assets/images/user.png', fit: BoxFit.cover),
+              ),
+            ),
           ),
         ],
       ),
+
+      // ── Body ────────────────────────────────────────────────────────────
       body: SafeArea(
         child: Column(
           children: [
@@ -68,18 +91,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 if (vm.isOnline) return const SizedBox.shrink();
                 return Container(
                   width: double.infinity,
-                  color: Colors.red.shade700,
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 6, horizontal: 12),
+                  color: kDanger,
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
                   child: Row(
                     children: [
-                      const Icon(Icons.wifi_off,
-                          color: Colors.white, size: 16),
+                      const Icon(Icons.wifi_off, color: Colors.white, size: 14),
                       const SizedBox(width: 8),
                       Text(
                         t.get('no_connection'),
                         style: const TextStyle(
-                            color: Colors.white, fontSize: 13),
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontFamily: 'PoppinsRegular',
+                        ),
                       ),
                     ],
                   ),
@@ -88,241 +113,218 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.only(left: 10, right: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 children: [
-                  SizedBox(height: res_height * 0.025),
+                  SizedBox(height: resHeight * 0.02),
+
+                  // Section header
                   Text(
                     t.get('your_balance'),
                     style: Theme.of(context).textTheme.headlineMedium,
                   ),
-                  SizedBox(height: res_height * 0.025),
+                  SizedBox(height: resHeight * 0.018),
+
+                  // ── Balance card ────────────────────────────────────────
                   GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const CardScreen()),
-                      );
-                    },
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const CardScreen()),
+                    ),
                     child: Container(
-                      height: res_height * 0.125,
+                      padding: const EdgeInsets.all(22),
                       decoration: BoxDecoration(
-                          color: colorScheme.surface,
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(25))),
-                      child: Padding(
-                        padding:
-                            const EdgeInsets.only(left: 20, right: 20),
-                        child: Row(
-                          mainAxisAlignment:
-                              MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              mainAxisAlignment:
-                                  MainAxisAlignment.center,
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  t.get('date_june_14_2020'),
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyLarge,
+                        gradient: kGradientPrimary,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: kPrimary.withValues(alpha: 0.4),
+                            blurRadius: 24,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                t.get('date_june_14_2020'),
+                                style: TextStyle(
+                                  fontFamily: 'PoppinsLight',
+                                  fontSize: 12,
+                                  color: Colors.white.withValues(alpha: 0.7),
                                 ),
-                                const SizedBox(height: 5),
+                              ),
+                              const SizedBox(height: 6),
+                              const Text(
+                                '\$27,802.05',
+                                style: TextStyle(
+                                  fontFamily: 'PoppinsBold',
+                                  fontSize: 28,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: kSuccess.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.trending_up,
+                                    color: Colors.greenAccent, size: 16),
+                                SizedBox(width: 4),
                                 Text(
-                                  "\$27,802.05",
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .headlineMedium,
+                                  '15%',
+                                  style: TextStyle(
+                                    fontFamily: 'PoppinsMedium',
+                                    fontSize: 13,
+                                    color: Colors.greenAccent,
+                                  ),
                                 ),
                               ],
                             ),
-                            Row(
-                              children: [
-                                Text(
-                                  "15%",
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleLarge,
-                                ),
-                                const SizedBox(width: 5),
-                                Icon(
-                                  Icons.arrow_upward,
-                                  color: colorScheme.onSurface,
-                                )
-                              ],
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  SizedBox(height: res_height * 0.025),
-                  // Exchange Rates Widget
-                  _ExchangeRateCard(),
-                  SizedBox(height: res_height * 0.025),
+                  SizedBox(height: resHeight * 0.025),
+
+                  // ── Quick actions ──────────────────────────────────────
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      Container(
-                        decoration: BoxDecoration(
-                            color: colorScheme.surface,
-                            borderRadius: const BorderRadius.all(
-                                Radius.circular(25))),
-                        child: Padding(
-                          padding: const EdgeInsets.all(15.0),
-                          child: Icon(Icons.arrow_upward,
-                              color: kprimarycolor, size: 35),
-                        ),
+                      _QuickAction(
+                        icon: Icons.arrow_upward_rounded,
+                        label: t.get('send'),
+                        color: kPrimary,
                       ),
-                      Container(
-                        decoration: BoxDecoration(
-                            color: colorScheme.surface,
-                            borderRadius: const BorderRadius.all(
-                                Radius.circular(25))),
-                        child: Padding(
-                          padding: const EdgeInsets.all(15.0),
-                          child: Icon(Icons.arrow_downward,
-                              color: kprimarycolor, size: 35),
-                        ),
+                      _QuickAction(
+                        icon: Icons.arrow_downward_rounded,
+                        label: t.get('receive'),
+                        color: kSuccess,
                       ),
-                      Container(
-                        decoration: BoxDecoration(
-                            color: colorScheme.surface,
-                            borderRadius: const BorderRadius.all(
-                                Radius.circular(25))),
-                        child: Padding(
-                          padding: const EdgeInsets.all(15.0),
-                          child: Icon(Icons.food_bank,
-                              color: kprimarycolor, size: 35),
-                        ),
+                      _QuickAction(
+                        icon: Icons.compare_arrows_rounded,
+                        label: t.get('services'),
+                        color: kGold,
                       ),
-                      Container(
-                        decoration: BoxDecoration(
-                            color: colorScheme.surface,
-                            borderRadius: const BorderRadius.all(
-                                Radius.circular(25))),
-                        child: Padding(
-                          padding: const EdgeInsets.all(15.0),
-                          child: Icon(Icons.charging_station_rounded,
-                              color: kprimarycolor, size: 35),
-                        ),
+                      _QuickAction(
+                        icon: Icons.bolt_rounded,
+                        label: t.get('pay_bill'),
+                        color: kCyan,
                       ),
                     ],
                   ),
-                  SizedBox(height: res_height * 0.025),
+                  SizedBox(height: resHeight * 0.025),
+
+                  // ── Exchange rates ─────────────────────────────────────
+                  const _ExchangeRateCard(),
+                  SizedBox(height: resHeight * 0.025),
+
+                  // ── Activities header ──────────────────────────────────
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         t.get('activities'),
-                        style:
-                            Theme.of(context).textTheme.headlineSmall,
+                        style: Theme.of(context).textTheme.headlineSmall,
                       ),
                       Container(
-                        width: res_width * 0.25,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
-                            color: colorScheme.surface,
-                            borderRadius: const BorderRadius.all(
-                                Radius.circular(25))),
-                        child: Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: Center(
-                            child: Text(
-                              t.get('this_week'),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleSmall,
-                            ),
+                          color: kPrimary.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          t.get('this_week'),
+                          style: const TextStyle(
+                            fontFamily: 'PoppinsMedium',
+                            fontSize: 12,
+                            color: kPrimary,
                           ),
                         ),
-                      )
+                      ),
                     ],
                   ),
-                  SizedBox(height: res_height * 0.025),
-                  SizedBox(
-                    height: res_height * 0.3,
+                  SizedBox(height: resHeight * 0.02),
+
+                  // ── Bar chart ──────────────────────────────────────────
+                  Container(
+                    height: resHeight * 0.28,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surface,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                     child: BarChart(mainBarData()),
                   ),
-                  SizedBox(height: res_height * 0.025),
+                  SizedBox(height: resHeight * 0.025),
                 ],
               ),
             ),
           ],
         ),
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.only(left: 10, right: 10, bottom: 30),
-        child: Container(
-          decoration: BoxDecoration(
-              color: colorScheme.surface,
-              borderRadius:
-                  const BorderRadius.all(Radius.circular(15))),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      bottomIndex = 0;
-                    });
-                  },
-                  child: BottomItems(
-                      active: bottomIndex == 0 ? true : false,
-                      icon: Icons.home),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    setState(() => bottomIndex = 1);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const NotificationsScreen()),
-                    );
-                  },
-                  child: BottomItems(
-                      active: bottomIndex == 1 ? true : false,
-                      icon: Icons.notifications),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      bottomIndex = 2;
-                    });
-                  },
-                  child: BottomItems(
-                      active: bottomIndex == 2 ? true : false,
-                      icon: Icons.chat_bubble),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const SettingsScreen()),
-                    );
-                  },
-                  child: BottomItems(
-                      active: bottomIndex == 3 ? true : false,
-                      icon: Icons.settings),
-                )
-              ],
+
+      // ── Bottom navigation ──────────────────────────────────────────────
+      bottomNavigationBar: Container(
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 20,
+              offset: const Offset(0, -2),
             ),
-          ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _navItem(Icons.home_rounded, 0),
+            _navItem(Icons.notifications_outlined, 1, onTap: () {
+              setState(() => bottomIndex = 1);
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const NotificationsScreen()));
+            }),
+            _navItem(Icons.chat_bubble_outline_rounded, 2),
+            _navItem(Icons.settings_outlined, 3, onTap: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const SettingsScreen()));
+            }),
+          ],
         ),
       ),
     );
   }
 
+  Widget _navItem(IconData icon, int index, {VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap ?? () => setState(() => bottomIndex = index),
+      child: BottomItems(active: bottomIndex == index, icon: icon),
+    );
+  }
+
+  // ── Bar chart data (logic unchanged) ──────────────────────────────────────
+
   BarChartGroupData makeGroupData(
     int x,
     double y, {
-    Color barColor = kprimarycolor,
-    double width = 15,
-    List<int> showTooltips = const [],
+    Color barColor = kPrimary,
+    double width = 14,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
     return BarChartGroupData(
@@ -330,39 +332,22 @@ class _HomeScreenState extends State<HomeScreen> {
       barRods: [
         BarChartRodData(
           toY: y,
-          color: barColor,
+          color: touchedIndex == x ? kPrimary2 : barColor,
           width: width,
-          borderSide: BorderSide(color: colorScheme.onSurface, width: 1),
+          borderRadius: BorderRadius.circular(6),
           backDrawRodData: BackgroundBarChartRodData(
             show: true,
             toY: 15,
-            color: colorScheme.surface,
+            color: colorScheme.surfaceContainerHighest,
           ),
         ),
       ],
-      showingTooltipIndicators: showTooltips,
     );
   }
 
   List<BarChartGroupData> showingGroups() => List.generate(7, (i) {
-        switch (i) {
-          case 0:
-            return makeGroupData(0, 5);
-          case 1:
-            return makeGroupData(1, 6.5);
-          case 2:
-            return makeGroupData(2, 5);
-          case 3:
-            return makeGroupData(3, 7.5);
-          case 4:
-            return makeGroupData(4, 9);
-          case 5:
-            return makeGroupData(5, 11.5);
-          case 6:
-            return makeGroupData(6, 6.5);
-          default:
-            return throw Error();
-        }
+        const data = [5.0, 6.5, 5.0, 7.5, 9.0, 11.5, 6.5];
+        return makeGroupData(i, data[i]);
       });
 
   BarChartData mainBarData() {
@@ -381,23 +366,22 @@ class _HomeScreenState extends State<HomeScreen> {
     return BarChartData(
       barTouchData: BarTouchData(
         touchTooltipData: BarTouchTooltipData(
-          getTooltipColor: (BarChartGroupData group) => colorScheme.surface,
+          getTooltipColor: (_) => colorScheme.surface,
           getTooltipItem: (group, groupIndex, rod, rodIndex) {
-            final weekDay = months[group.x];
             return BarTooltipItem(
-              '$weekDay\n',
+              '${months[group.x]}\n',
               TextStyle(
                 color: colorScheme.onSurface,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
+                fontFamily: 'PoppinsMedium',
+                fontSize: 13,
               ),
-              children: <TextSpan>[
+              children: [
                 TextSpan(
                   text: (rod.toY - 1).toString(),
                   style: const TextStyle(
-                    color: kprimarycolor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                    color: kPrimary,
+                    fontSize: 14,
+                    fontFamily: 'PoppinsBold',
                   ),
                 ),
               ],
@@ -418,21 +402,33 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       titlesData: FlTitlesData(
         show: true,
-        rightTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-        topTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
+        rightTitles:
+            const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        topTitles:
+            const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        leftTitles:
+            const AxisTitles(sideTitles: SideTitles(showTitles: false)),
         bottomTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
-            getTitlesWidget: getTitles,
-            reservedSize: 38,
+            getTitlesWidget: (value, meta) {
+              final idx = value.toInt();
+              if (idx < 0 || idx >= months.length) return const SizedBox();
+              return SideTitleWidget(
+                meta: meta,
+                space: 10,
+                child: Text(
+                  months[idx],
+                  style: TextStyle(
+                    color: colorScheme.onSurfaceVariant,
+                    fontFamily: 'PoppinsRegular',
+                    fontSize: 11,
+                  ),
+                ),
+              );
+            },
+            reservedSize: 30,
           ),
-        ),
-        leftTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
         ),
       ),
       borderData: FlBorderData(show: false),
@@ -440,39 +436,53 @@ class _HomeScreenState extends State<HomeScreen> {
       gridData: const FlGridData(show: false),
     );
   }
+}
 
-  Widget getTitles(double value, TitleMeta meta) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final t = AppLocalizations.of(context);
-    final style = TextStyle(
-      color: colorScheme.onSurface,
-      fontWeight: FontWeight.bold,
-      fontSize: 14,
-    );
-    final months = [
-      t.get('jan'),
-      t.get('feb'),
-      t.get('march'),
-      t.get('april'),
-      t.get('may'),
-      t.get('jun'),
-      t.get('jul'),
-    ];
-    final idx = value.toInt();
-    final text = idx >= 0 && idx < months.length
-        ? Text(months[idx], style: style)
-        : Text('', style: style);
-    return SideTitleWidget(
-      meta: meta,
-      space: 16,
-      child: text,
+// ── Quick action button ──────────────────────────────────────────────────────
+
+class _QuickAction extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+
+  const _QuickAction({
+    required this.icon,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Icon(icon, color: color, size: 26),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: TextStyle(
+            fontFamily: 'PoppinsRegular',
+            fontSize: 11,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
     );
   }
 }
 
-// ── Exchange Rate Card ────────────────────────────────────────────────────────
+// ── Exchange Rate Card ──────────────────────────────────────────────────────
 
 class _ExchangeRateCard extends StatelessWidget {
+  const _ExchangeRateCard();
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -485,39 +495,61 @@ class _ExchangeRateCard extends StatelessWidget {
             color: colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
           ),
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    t.get('exchange_rates'),
-                    style: Theme.of(context).textTheme.titleMedium,
+                  Row(
+                    children: [
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: kCyan.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.currency_exchange,
+                            size: 16, color: kCyan),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        t.get('exchange_rates'),
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ],
                   ),
                   Row(
                     children: [
                       if (vm.isFromCache)
                         Padding(
-                          padding: const EdgeInsets.only(right: 6),
+                          padding: const EdgeInsets.only(right: 8),
                           child: Tooltip(
                             message: t.get('cached_data'),
-                            child: Icon(Icons.cached,
-                                size: 16, color: Colors.orange.shade400),
+                            child: const Icon(Icons.cached,
+                                size: 16, color: kGold),
                           ),
                         ),
                       if (vm.status != ExchangeRateStatus.loading)
                         GestureDetector(
                           onTap: vm.fetchRates,
-                          child: Icon(Icons.refresh,
-                              size: 18, color: colorScheme.onSurface),
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: colorScheme.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(Icons.refresh,
+                                size: 16, color: colorScheme.onSurfaceVariant),
+                          ),
                         ),
                     ],
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               _buildBody(context, vm, t),
             ],
           ),
@@ -527,13 +559,13 @@ class _ExchangeRateCard extends StatelessWidget {
   }
 
   Widget _buildBody(
-      BuildContext context, ExchangeRateViewModel vm, AppLocalizations t) {
+      BuildContext ctx, ExchangeRateViewModel vm, AppLocalizations t) {
     switch (vm.status) {
       case ExchangeRateStatus.loading:
         return const Center(
           child: Padding(
-            padding: EdgeInsets.symmetric(vertical: 12),
-            child: CircularProgressIndicator(strokeWidth: 2),
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: CircularProgressIndicator(strokeWidth: 2, color: kPrimary),
           ),
         );
       case ExchangeRateStatus.offline:
@@ -542,38 +574,63 @@ class _ExchangeRateCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Row(
               children: [
-                const Icon(Icons.wifi_off, size: 16, color: Colors.grey),
+                const Icon(Icons.wifi_off, size: 14, color: Colors.grey),
                 const SizedBox(width: 6),
                 Text(t.get('no_connection'),
-                    style: const TextStyle(color: Colors.grey)),
+                    style: const TextStyle(color: Colors.grey, fontSize: 12)),
               ],
             ),
           );
         }
-        return _buildRates(context, vm, t);
+        return _buildRates(ctx, vm, t);
       case ExchangeRateStatus.error:
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Text(t.get('rates_error'),
-              style: const TextStyle(color: Colors.grey)),
+              style: const TextStyle(color: Colors.grey, fontSize: 12)),
         );
       case ExchangeRateStatus.loaded:
-        return _buildRates(context, vm, t);
+        return _buildRates(ctx, vm, t);
     }
   }
 
   Widget _buildRates(
-      BuildContext context, ExchangeRateViewModel vm, AppLocalizations t) {
+      BuildContext ctx, ExchangeRateViewModel vm, AppLocalizations t) {
     final rates = vm.rates!;
-    final colorScheme = Theme.of(context).colorScheme;
+    final colorScheme = Theme.of(ctx).colorScheme;
+    final currencyIcons = <String, String>{
+      'EUR': '€',
+      'GBP': '£',
+      'JPY': '¥',
+    };
+
     return Column(
       children: [
         ...rates.rates.entries.map(
           (e) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
+            padding: const EdgeInsets.symmetric(vertical: 5),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                // Currency symbol badge
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Center(
+                    child: Text(
+                      currencyIcons[e.key] ?? e.key[0],
+                      style: const TextStyle(
+                        fontFamily: 'PoppinsBold',
+                        fontSize: 14,
+                        color: kPrimary,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
                 Text(
                   '${rates.base} → ${e.key}',
                   style: TextStyle(
@@ -582,12 +639,13 @@ class _ExchangeRateCard extends StatelessWidget {
                     fontSize: 13,
                   ),
                 ),
+                const Spacer(),
                 Text(
                   e.value.toStringAsFixed(4),
                   style: const TextStyle(
-                    color: kprimarycolor,
+                    color: kPrimary,
                     fontFamily: 'PoppinsMedium',
-                    fontSize: 13,
+                    fontSize: 14,
                   ),
                 ),
               ],
@@ -596,13 +654,14 @@ class _ExchangeRateCard extends StatelessWidget {
         ),
         if (vm.isFromCache)
           Padding(
-            padding: const EdgeInsets.only(top: 6),
+            padding: const EdgeInsets.only(top: 8),
             child: Text(
               '${t.get('cached_data')} · ${rates.date}',
-              style: TextStyle(
-                  color: Colors.orange.shade400,
-                  fontSize: 11,
-                  fontFamily: 'PoppinsLight'),
+              style: const TextStyle(
+                color: kGold,
+                fontSize: 10,
+                fontFamily: 'PoppinsLight',
+              ),
             ),
           ),
       ],

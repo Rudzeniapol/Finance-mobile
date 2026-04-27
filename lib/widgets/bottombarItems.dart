@@ -1,33 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:my_app/helpers/colors.dart';
 
-class BottomItems extends StatefulWidget {
-  final icon;
-  final active;
+class BottomItems extends StatelessWidget {
+  final IconData icon;
+  final bool active;
+
   const BottomItems({super.key, required this.active, required this.icon});
 
   @override
-  State<BottomItems> createState() => _BottomItemsState();
-}
-
-class _BottomItemsState extends State<BottomItems> {
-  @override
   Widget build(BuildContext context) {
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeInOut,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       decoration: BoxDecoration(
-          color: widget.active
-              ? kprimarycolor.withOpacity(0.1)
-              : Colors.grey.withOpacity(0.1),
-          borderRadius: BorderRadius.all(Radius.circular(15))),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Icon(
-          widget.icon,
-          color: widget.active ? kprimarycolor : Colors.grey,
-          size: 30,
-        ),
+        color: active
+            ? kPrimary.withValues(alpha: 0.14)
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Icon(
+        icon,
+        color: active ? kPrimary : Colors.grey.withValues(alpha: 0.6),
+        size: 26,
       ),
     );
   }
